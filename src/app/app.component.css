@@ -1,0 +1,15 @@
+.centered {
+  text-align: center;
+  margin: 0 auto;
+  color: white;
+}
+
+.margins-bot {
+  margin-bottom: 15px;
+}
+
+.social img.fn__svg {
+  filter: brightness(0) invert(1);
+}
+
+

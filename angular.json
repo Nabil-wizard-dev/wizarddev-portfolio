@@ -27,9 +27,20 @@
               }
             ],
             "styles": [
-              "src/styles.css"
+              "src/styles.css",
+              "public/css/base7dd3.css",
+              "public/css/magnific7dd3.css",
+              "public/css/animated-headlines7dd3.css",
+              "public/css/style7dd3.css"
             ],
-            "scripts": []
+            "scripts": [
+              "public/js/jquery7dd3.js",
+              "public/js/isotope.js",
+              "public/js/magnific.js",
+              "public/js/animated-headlines7dd3.js",
+              "public/js/waypoints7dd3.js",
+              "public/js/init7dd3.js"
+            ]
           },
           "configurations": {
             "production": {
