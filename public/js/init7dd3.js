@@ -31,19 +31,36 @@ $.fn.DeeboProgressIsInViewport = function(content) {
 			FrenifyDeebo.magnific();
 			FrenifyDeebo.anchor();
 			FrenifyDeebo.darklight();
+			FrenifyDeebo.bindScroll();
+		},
+
+		bindScroll: function(){
+			$('.cv__content').off('scroll').on('scroll',function(){
+				FrenifyDeebo.fixedTotopScroll();
+			});
 		},
 		
 		darklight: function(){
-			$('.deebo_fn_switcher_wrap input').on('change',function(){
+			var body 		= $('body');
+			var checkbox 	= $('.deebo_fn_switcher_wrap input');
+			var saved 		= localStorage.getItem('theme');
+
+			if(saved === 'light'){
+				body.removeClass('dark').addClass('light');
+				checkbox.prop('checked', false);
+			}else{
+				body.removeClass('light').addClass('dark');
+				checkbox.prop('checked', true);
+			}
+
+			checkbox.off('change').on('change',function(){
 				var checkBox = $(this);
 				if(checkBox.is(':checked')){
-					setTimeout(function(){
-						window.open('index.html', "_self");
-					},500);
+					body.removeClass('light').addClass('dark');
+					localStorage.setItem('theme', 'dark');
 				}else{
-					setTimeout(function(){
-						window.open('index-light.html', "_self");
-					},500);
+					body.removeClass('dark').addClass('light');
+					localStorage.setItem('theme', 'light');
 				}
 				return false;
 			});
@@ -307,7 +324,7 @@ $.fn.DeeboProgressIsInViewport = function(content) {
 		},
 		
 		loadBlogPosts: function(){
-			$('.section_tips .load_more a').on('mousedown',function(){
+			$('.section_tips .load_more a:not(.github_link)').on('mousedown',function(){
 				var element 	= $(this);
 				var text 		= element.find('.text');
 				// stop function if don't have more items
@@ -335,7 +352,7 @@ $.fn.DeeboProgressIsInViewport = function(content) {
 					return false;
 				}
 			});
-			$('.section_tips .load_more a').on('click',function(){
+			$('.section_tips .load_more a:not(.github_link)').on('click',function(){
 				var element 	= $(this);
 				var text 		= element.find('.text');
 				
@@ -452,9 +469,6 @@ $.fn.DeeboProgressIsInViewport = function(content) {
 		},10);
 	});
 	
-	// SCROLL Functions
-	$('.cv__content').on('scroll',function(){
-		FrenifyDeebo.fixedTotopScroll();
-	});
-  	
+	window.FrenifyDeebo = FrenifyDeebo;
+
 })(jQuery);
