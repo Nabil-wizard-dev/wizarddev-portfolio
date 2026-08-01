@@ -43,24 +43,16 @@ $.fn.DeeboProgressIsInViewport = function(content) {
 		darklight: function(){
 			var body 		= $('body');
 			var checkbox 	= $('.deebo_fn_switcher_wrap input');
-			var saved 		= localStorage.getItem('theme');
 
-			if(saved === 'light'){
-				body.removeClass('dark').addClass('light');
-				checkbox.prop('checked', false);
-			}else{
-				body.removeClass('light').addClass('dark');
-				checkbox.prop('checked', true);
-			}
+			body.removeClass('light').addClass('dark');
+			checkbox.prop('checked', true);
 
 			checkbox.off('change').on('change',function(){
 				var checkBox = $(this);
 				if(checkBox.is(':checked')){
 					body.removeClass('light').addClass('dark');
-					localStorage.setItem('theme', 'dark');
 				}else{
 					body.removeClass('dark').addClass('light');
-					localStorage.setItem('theme', 'light');
 				}
 				return false;
 			});

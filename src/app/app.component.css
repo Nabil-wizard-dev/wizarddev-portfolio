@@ -1,11 +1,18 @@
 .centered {
   text-align: center;
   margin: 0 auto;
-  color: white;
 }
 
 .margins-bot {
   margin-bottom: 15px;
+}
+
+.intro_text {
+  color: #eee;
+}
+
+:host-context(.light) .intro_text {
+  color: #111;
 }
 
 .social img.fn__svg {
