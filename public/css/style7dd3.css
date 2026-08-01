@@ -185,11 +185,11 @@ body.resume-opened .deebo_fn__cv .cv__bg2{
 	opacity: 0;
 }
 .deebo_fn__cv .cv__content{
-  	scrollbar-width: thin;
-  	scrollbar-color: #000 #000;
+  	scrollbar-width: none;
+  	-ms-overflow-style: none;
 }
 .deebo_fn__cv .cv__content::-webkit-scrollbar{
-	width: 14px;
+	width: 0;
 }
 .deebo_fn__cv .cv__content:-webkit-scrollbar-track{
 	background: #000;
@@ -252,8 +252,8 @@ body.resume-opened .deebo_fn__cv .cv__bg2{
 }
 
 .deebo_fn__cv .cv__header .in{
-  	scrollbar-width: thin;
-  	scrollbar-color: #000 #000;
+  	scrollbar-width: none;
+  	-ms-overflow-style: none;
 }
 .deebo_fn__cv .cv__header .in::-webkit-scrollbar{
 	width: 0;
