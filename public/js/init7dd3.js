@@ -11,11 +11,20 @@ $.fn.DeeboProgressIsInViewport = function(content) {
 
 (function($){
   "use strict";
-  
-  
+
+	// EmailJS settings (emailjs.com > Email Services / Email Templates / Account > General)
+	var EMAILJS_CONFIG = {
+		publicKey: 	'E9sKoh_ocwzUX6WKb',
+		serviceId: 	'service_ity4ldk',
+		templateId: 'i5beb32'
+	};
+
 	var FrenifyDeebo = {
 
 		init: function(){
+			if(typeof emailjs !== 'undefined' && EMAILJS_CONFIG.publicKey !== 'YOUR_PUBLIC_KEY'){
+				emailjs.init({ publicKey: EMAILJS_CONFIG.publicKey });
+			}
 			FrenifyDeebo.BgImg();
 			FrenifyDeebo.imgToSVG();
 			FrenifyDeebo.progress();
@@ -44,8 +53,8 @@ $.fn.DeeboProgressIsInViewport = function(content) {
 			var body 		= $('body');
 			var checkbox 	= $('.deebo_fn_switcher_wrap input');
 
-			body.removeClass('light').addClass('dark');
-			checkbox.prop('checked', true);
+			body.removeClass('dark').addClass('light');
+			checkbox.prop('checked', false);
 
 			checkbox.off('change').on('change',function(){
 				var checkBox = $(this);
@@ -177,7 +186,7 @@ $.fn.DeeboProgressIsInViewport = function(content) {
 		},
 		
 		contactForm: function(){
-			$('#send_message').on('click', function(){
+			$('#send_message').off('click').on('click', function(){
 				var form		= $('.section_contact .contact_form');
 				var name 		= $("#name").val();
 				var email 		= $("#email").val();
@@ -188,31 +197,38 @@ $.fn.DeeboProgressIsInViewport = function(content) {
 				var emailto     = form.data('email');
 
 				spanSuccess.empty();
-				if(name === ''|| email === ''|| message === '' || emailto === '' || phone === ''){
+				if(name === '' || email === '' || message === ''){
 					$('.empty_notice').slideDown(500).delay(2000).slideUp(500);
 				}
-				else{
-					$.post(
-						"modal/contact.html",
-						{
-							ajax_name: 		name,
-							ajax_email: 	email,
-							ajax_emailto: 	emailto,
-							ajax_message: 	message,
-							ajax_phone: 	phone
-						}, function(data) {
-							spanSuccess.append(data);
-							if(spanSuccess.find(".contact_error").length){
-								spanSuccess.slideDown(500).delay(2000).slideUp(500);		
-							}else{
-								spanSuccess.append("<span class='contact_success'>" + success + "</span>");
-								spanSuccess.slideDown(500).delay(4000).slideUp(500);
-							}
-							if(data === ''){ form[0].reset();}
-						}
-					);
+				else if(typeof emailjs === 'undefined'){
+					spanSuccess.append("<span class='contact_error'>Something went wrong, please try again later.</span>");
+					spanSuccess.slideDown(500).delay(4000).slideUp(500);
 				}
-				return false; 
+				else{
+					var button = $(this);
+					if(button.data('sending')){ return false; }
+					button.data('sending', true).css({'pointer-events': 'none', 'opacity': 0.6});
+					emailjs.send(EMAILJS_CONFIG.serviceId, EMAILJS_CONFIG.templateId, {
+						title: 			name,
+						name: 			name,
+						email: 			email,
+						phone: 			phone,
+						form_name: 		name,
+						form_message: 	message,
+						time: 			new Date().toLocaleString(),
+						to_email: 		emailto
+					}, { publicKey: EMAILJS_CONFIG.publicKey }).then(function(){
+						spanSuccess.append("<span class='contact_success'>" + success + "</span>");
+						spanSuccess.slideDown(500).delay(4000).slideUp(500);
+						form[0].reset();
+					}, function(){
+						spanSuccess.append("<span class='contact_error'>Something went wrong, please try again later.</span>");
+						spanSuccess.slideDown(500).delay(4000).slideUp(500);
+					}).finally(function(){
+						button.data('sending', false).css({'pointer-events': '', 'opacity': ''});
+					});
+				}
+				return false;
 			});
 		},
 		
@@ -443,7 +459,7 @@ $.fn.DeeboProgressIsInViewport = function(content) {
   	
 	
 	// READY Functions
-	$(document).ready(function(){FrenifyDeebo.init();});
+	// init() is called by Angular (AppComponent.ngAfterViewInit) once the template is rendered.
 	
 	// RESIZE Functions
 	$(window).on('resize',function(){
