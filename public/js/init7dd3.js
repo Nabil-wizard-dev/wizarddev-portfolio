@@ -1,7 +1,3 @@
-$.fn.DeeboProgressIsInViewport = function(content) {
-	"use strict";
-	return $(this).offset().top - content.outerHeight();
-};
 /*
  * Copyright (c) 2021 Frenify
  * Author: Frenify
@@ -27,27 +23,13 @@ $.fn.DeeboProgressIsInViewport = function(content) {
 			}
 			FrenifyDeebo.BgImg();
 			FrenifyDeebo.imgToSVG();
-			FrenifyDeebo.progress();
 			FrenifyDeebo.resume();
-			FrenifyDeebo.loadBlogPosts();
 			FrenifyDeebo.modal();
-			FrenifyDeebo.progress2();
 			FrenifyDeebo.contactForm();
-			FrenifyDeebo.toTopJumper();
-			FrenifyDeebo.rating();
-			FrenifyDeebo.isotope();
-			FrenifyDeebo.portfolioFilter();
-			FrenifyDeebo.magnific();
 			FrenifyDeebo.anchor();
 			FrenifyDeebo.darklight();
-			FrenifyDeebo.bindScroll();
 		},
 
-		bindScroll: function(){
-			$('.cv__content').off('scroll').on('scroll',function(){
-				FrenifyDeebo.fixedTotopScroll();
-			});
-		},
 		
 		darklight: function(){
 			var body 		= $('body');
@@ -82,107 +64,6 @@ $.fn.DeeboProgressIsInViewport = function(content) {
 
 				return false;
 			});	
-		},
-		
-		magnific: function(){
-			$('.gallery_zoom').each(function() { // the containers for all your galleries
-				$(this).magnificPopup({
-					delegate: 'a.zoom', // the selector for gallery item
-					type: 'image',
-					gallery: {
-					  enabled:true
-					},
-					removalDelay: 300,
-					mainClass: 'mfp-fade'
-				});
-
-			});
-			$('.popup-youtube, .popup-vimeo').each(function() { // the containers for all your galleries
-				$(this).magnificPopup({
-					disableOn: 700,
-					type: 'iframe',
-					mainClass: 'mfp-fade',
-					removalDelay: 160,
-					preloader: false,
-					fixedContentPos: false
-				});
-			});
-
-			$('.soundcloude_link').magnificPopup({
-			  type : 'image',
-			   gallery: {
-				   enabled: true, 
-			   },
-			});	
-		},
-		
-		portfolioFilter: function(){
-			var filter		 = $('.fn_cs_portfolio .portfolio_filter ul');
-
-			if(filter.length){
-				// Isotope Filter 
-				filter.find('a').on('click', function(){
-					var element		= $(this);
-					var selector 	= element.attr('data-filter');
-					var list		= element.closest('.fn_cs_portfolio').find('.portfolio_list').children('ul');
-					list.isotope({ 
-						filter				: selector,
-						animationOptions	: {
-							duration			: 750,
-							easing				: 'linear',
-							queue				: false
-						}
-					});
-
-					filter.find('a').removeClass('current');
-					element.addClass('current');
-					return false;
-				});	
-			}	
-		},
-		
-		isotope: function(){
-			$('.grid').masonry({
-				itemSelector: '.grid-item',
-			});	
-		},
-		
-		
-		rating: function(){
-			$('.t_rating').each(function(){
-				var e 		= $(this),
-					stars 	= parseFloat(e.data('stars'));
-				var a	= stars * 20;
-				var b 	= 100 - a;
-				e.find('.rating_regular').css({width: b + '%'});
-				e.find('.rating_active').css({width: a + '%'});
-			});
-		},
-		
-		
-		toTopJumper: function(){
-			var totop		= $('.deebo_fn_totop');
-			if(totop.length){
-				totop.on('click', function(e) {
-					e.preventDefault();		
-					$("html, body").animate(
-						{ scrollTop: 0 }, 'slow');
-					return false;
-				});
-			}
-		},
-		
-		
-		fixedTotopScroll: function(){
-			var totop			= $('.deebo_fn_totop');
-			var height 			= 100;
-			if(totop.length){
-				if($('.cv__content').scrollTop() > height){
-					totop.addClass('scrolled');
-				}else{
-					totop.removeClass('scrolled');
-				}
-			}
 		},
 		
 		contactForm: function(){
@@ -232,27 +113,6 @@ $.fn.DeeboProgressIsInViewport = function(content) {
 			});
 		},
 		
-		
-		progress2: function(){
-			$('.fn_cs_progress_bar').each(function() {
-				var pWrap 	= $(this);
-				pWrap.waypoint({handler: function(){FrenifyDeebo.progress2F(pWrap);},offset:'90%'});
-			});
-		},
-		
-		progress2F: function(container){
-			container.find('.progress_item').each(function(i) {
-				var progress 	= $(this);
-				var pValue 		= parseInt(progress.data('value'));
-				var percent 	= progress.find('.progress_percent');
-				var pBar 		= progress.find('.progress_bg');
-				pBar.css({width:pValue+'%'});
-				setTimeout(function(){
-					progress.addClass('open');
-					percent.html(pValue+'%').css({right:(100 - pValue)+ '%'});
-				},(i*500));
-			});	
-		},
 		modal: function(){
 			var self		= this;
 			var modalBox	= $('.deebo_fn_modalbox');
@@ -331,98 +191,9 @@ $.fn.DeeboProgressIsInViewport = function(content) {
 			});
 		},
 		
-		loadBlogPosts: function(){
-			$('.section_tips .load_more a:not(.github_link)').on('mousedown',function(){
-				var element 	= $(this);
-				var text 		= element.find('.text');
-				// stop function if don't have more items
-				if(element.hasClass('done')){
-					element.addClass('hold');
-					text.text(element.attr('data-no'));
-					return false;
-				}
-			}).on('mouseup',function(){
-				var element 	= $(this);
-				var text 		= element.find('.text');
-				// stop function if don't have more items
-				if(element.hasClass('done')){
-					element.removeClass('hold');
-					text.text(element.attr('data-done'));
-					return false;
-				}
-			}).on('mouseleave',function(){
-				var element 	= $(this);
-				var text 		= element.find('.text');
-				// stop function if don't have more items
-				if(element.hasClass('done')){
-					element.removeClass('hold');
-					text.text(element.attr('data-done'));
-					return false;
-				}
-			});
-			$('.section_tips .load_more a:not(.github_link)').on('click',function(){
-				var element 	= $(this);
-				var text 		= element.find('.text');
-				
-				// stop function if elements are loading right now
-				if(element.hasClass('loading') || element.hasClass('done')){return false;}
-				element.addClass('loading');
-				
-				
-				
-				
-				setTimeout(function(){
-					var listItem = element.closest('.section_tips').find('.be_animated');
-					listItem.each(function(i, e){
-						setTimeout(function(){
-							$(e).addClass('fadeInTop done');
-						}, (i*100));	
-					});
-					element.addClass('done').removeClass('loading');
-					text.text(element.attr('data-done'));
-				},1500);
-				
-				
-				return false;
-			});
-		},
-		
 		resume: function(){
 			$('.deebo_fn__cv .cv__content').scrollTop(0);
 			$('body').addClass('resume-opened');
-		},
-		
-		progress: function(){
-			var content = $('.deebo_fn__cv .cv__content');
-			if($(window).width() <= 768){
-				content = $('.deebo_fn__cv');
-			}
-			content.on('resize scroll', function() {
-				if ($('.deebo_fn__cv .fn_cs_progress_bar').DeeboProgressIsInViewport(content) < 0) {
-					FrenifyDeebo.progressF($('.deebo_fn__cv .fn_cs_progress_bar'));
-				}
-			});
-		},
-		
-		progressF: function(container){
-			container.find('.progress_item').each(function(i) {
-				var progress 	= $(this);
-				var pValue 		= parseInt(progress.data('value'));
-				var percent 	= progress.find('.progress_percent');
-				var pBar 		= progress.find('.progress_bg');
-				pBar.css({width:pValue+'%'});
-				setTimeout(function(){
-					progress.addClass('open');
-					percent.html(pValue+'%').css({right:(100 - pValue)+ '%'});
-				},(i*500));
-			});	
-		},
-		
-		recallProgress: function(){
-			var tabs = $('.fn_cs_progress_bar');
-			tabs.find('.progress_bg').css({width:'0%'});
-			tabs.find('.progress_percent').html('').css({right:'100%'});
-			tabs.find('.progress_item').removeClass('open');
 		},
 		
 		imgToSVG: function(){
@@ -461,22 +232,7 @@ $.fn.DeeboProgressIsInViewport = function(content) {
 	// READY Functions
 	// init() is called by Angular (AppComponent.ngAfterViewInit) once the template is rendered.
 	
-	// RESIZE Functions
-	$(window).on('resize',function(){
-		FrenifyDeebo.isotope();
-		setTimeout(function(){
-			FrenifyDeebo.isotope();
-		},1010);
-	});
-	
-	// LOAD Functions
-	$(window).on('load',function(){
-		
-		setTimeout(function(){
-			
-		},10);
-	});
-	
+
 	window.FrenifyDeebo = FrenifyDeebo;
 
 })(jQuery);
