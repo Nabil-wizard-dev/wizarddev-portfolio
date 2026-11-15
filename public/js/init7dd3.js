@@ -201,7 +201,7 @@ $.fn.DeeboProgressIsInViewport = function(content) {
 					$('.empty_notice').slideDown(500).delay(2000).slideUp(500);
 				}
 				else if(typeof emailjs === 'undefined'){
-					spanSuccess.append("<span class='contact_error'>Something went wrong, please try again later.</span>");
+					spanSuccess.append("<span class='contact_error'>Une erreur est survenue, veuillez réessayer plus tard.</span>");
 					spanSuccess.slideDown(500).delay(4000).slideUp(500);
 				}
 				else{
@@ -222,7 +222,7 @@ $.fn.DeeboProgressIsInViewport = function(content) {
 						spanSuccess.slideDown(500).delay(4000).slideUp(500);
 						form[0].reset();
 					}, function(){
-						spanSuccess.append("<span class='contact_error'>Something went wrong, please try again later.</span>");
+						spanSuccess.append("<span class='contact_error'>Une erreur est survenue, veuillez réessayer plus tard.</span>");
 						spanSuccess.slideDown(500).delay(4000).slideUp(500);
 					}).finally(function(){
 						button.data('sending', false).css({'pointer-events': '', 'opacity': ''});
