@@ -1,30 +1,45 @@
 <div class="deebo_fn_main">
-  <!-- Light/Dark Switcher -->
-  <div class="deebo_fn_switcher_wrap">
-    <label>
-      <span class="light">Clair</span>
-      <span class="checkbox_wrap">
-        <input type="checkbox" id="skin_switcher" />
-        <span class="slider round"></span>
-      </span>
-      <span class="dark">Sombre</span>
+  <!-- Langue + thème -->
+  <div class="page_controls">
+    <label class="lang_select">
+      <span class="visually_hidden">{{ t().controls.language }}</span>
+      <select [value]="lang()" (change)="setLang($any($event.target).value)">
+        @for (l of langs; track l.code) {
+          <option [value]="l.code" [attr.lang]="l.code">{{ l.label }}</option>
+        }
+      </select>
+      <svg class="chevron" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true">
+        <path d="M3 4.5 6 7.5l3-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
     </label>
+
+    <button
+      type="button"
+      class="theme_toggle"
+      role="switch"
+      [attr.aria-checked]="theme() === 'dark'"
+      [attr.aria-label]="t().controls.darkMode"
+      [title]="t().controls.darkMode"
+      (click)="toggleTheme()"
+    >
+      <span class="knob" aria-hidden="true"></span>
+    </button>
   </div>
-  <!-- /Light/Dark Switcher -->
+  <!-- /Langue + thème -->
 
   <!-- Navigation par points (section en cours) -->
-  <nav class="section_dots" aria-label="Navigation entre les sections">
+  <nav class="section_dots" [attr.aria-label]="t().controls.sectionsNav">
     <ul>
-      @for (section of sections; track section.id) {
+      @for (section of sections; track section) {
         <li>
           <button
             type="button"
-            [class.active]="activeSection() === section.id"
-            [attr.aria-current]="activeSection() === section.id ? 'true' : null"
-            [attr.aria-label]="section.label"
-            (click)="scrollTo(section.id)"
+            [class.active]="activeSection() === section"
+            [attr.aria-current]="activeSection() === section ? 'true' : null"
+            [attr.aria-label]="t().nav[section]"
+            (click)="scrollTo(section)"
           >
-            <span class="dot_label">{{ section.label }}</span>
+            <span class="dot_label">{{ t().nav[section] }}</span>
           </button>
         </li>
       }
@@ -39,8 +54,8 @@
     [class.visible]="showBackToTop()"
     [attr.tabindex]="showBackToTop() ? null : -1"
     [attr.aria-hidden]="showBackToTop() ? null : 'true'"
-    aria-label="Revenir en haut"
-    title="Revenir en haut"
+    [attr.aria-label]="t().controls.backToTop"
+    [title]="t().controls.backToTop"
     (click)="scrollToTop()"
   >
     <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
@@ -72,11 +87,11 @@
 
         <div class="fn__nav" data-from="" data-index="">
           <a href="#" class="prev">
-            <span class="text">Précédent</span>
+            <span class="text">{{ t().controls.prev }}</span>
             <span class="arrow_wrapper"><span class="arrow"></span></span>
           </a>
           <a href="#" class="next">
-            <span class="text">Suivant</span>
+            <span class="text">{{ t().controls.next }}</span>
             <span class="arrow_wrapper"><span class="arrow"></span></span>
           </a>
         </div>
@@ -110,10 +125,10 @@
             />
           </div>
           <h3 class="centered"><span>Nabil</span> ADAMOU</h3>
-          <p class="centered tagline">Ingénieur logiciel · Full-Stack &amp; Mobile</p>
+          <p class="centered tagline">{{ t().header.tagline }}</p>
           <p class="centered margins-bot intro_text">
-            Disponible pour des missions freelance. <br>
-            <a href="#contact" class="anchor">Me contacter</a>
+            {{ t().header.available }} <br>
+            <a href="#contact" class="anchor contact_link">{{ t().header.contactMe }}</a>
           </p>
 
           <ul class="social centered">
@@ -153,6 +168,38 @@
                 <img class="fn__svg" src="svg/tiktok.svg" alt="tiktok.com" />
               </a>
             </li>
+            <!-- CV : même tuile que les réseaux, élargie pour le libellé -->
+            <li>
+              <a
+                class="cv_tile"
+                href="docs/Nabil_ADAMOU_CV.pdf"
+                download="Nabil_ADAMOU_CV.pdf"
+                type="application/pdf"
+                [title]="t().header.cvTitle"
+                [attr.aria-label]="t().header.cvTitle"
+              >
+                <svg class="cv_icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                  <path
+                    class="cv_arrow"
+                    d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M4.5 15.5v2.75c0 .97.78 1.75 1.75 1.75h11.5c.97 0 1.75-.78 1.75-1.75V15.5"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+                <span>{{ t().header.cv }}</span>
+              </a>
+            </li>
           </ul>
         </div>
       </div>
@@ -163,44 +210,33 @@
         <!-- CV: Biography Section -->
         <section id="cv_biography">
           <div class="section_title">
-            <h3>Biographie</h3>
+            <h3>{{ t().bio.title }}</h3>
           </div>
-          <p>
-            Titulaire d'une licence en génie logiciel obtenue à l'iPNet Institute
-            of Technology, je suis passionné par le développement de solutions
-            logicielles innovantes. Compétent en programmation, en conception de
-            systèmes et en gestion de bases de données, j'aime relever des défis
-            techniques dans des environnements exigeants. Je suis également
-            disponible pour des projets freelance.
-          </p>
+          <p>{{ t().bio.text }}</p>
           <div class="fn_cs_info_items">
             <ul>
               <li>
-                <p>Nom : <span>Nabil Adamou</span></p>
+                <p>{{ t().bio.name }}{{ t().colon }}<span>Nabil Adamou</span></p>
               </li>
               <li>
-                <p>Langues : <span>Français, Anglais</span></p>
+                <p>{{ t().bio.languages }}{{ t().colon }}<span>{{ t().bio.languagesValue }}</span></p>
               </li>
               <li>
-                <p>Nationalité : <span>Togolaise</span></p>
+                <p>{{ t().bio.nationality }}{{ t().colon }}<span>{{ t().bio.nationalityValue }}</span></p>
               </li>
               <li>
-                <p>Adresse : <span>Lomé, Togo</span></p>
+                <p>{{ t().bio.address }}{{ t().colon }}<span>Lomé, Togo</span></p>
               </li>
               <li>
                 <p>
-                  Téléphone :
+                  {{ t().bio.phone }}{{ t().colon }}
                   <span><a href="tel:+22890991191">(+228) 90 99 11 91</a></span>
                 </p>
               </li>
               <li>
                 <p>
-                  Email :
-                  <span
-                    ><a href="mailto:nabil.wizarddev@gmail.com"
-                      >nabil.wizarddev&#64;gmail.com</a
-                    ></span
-                  >
+                  {{ t().bio.email }}{{ t().colon }}
+                  <span><a href="mailto:nabil.wizarddev@gmail.com">nabil.wizarddev&#64;gmail.com</a></span>
                 </p>
               </li>
             </ul>
@@ -211,7 +247,7 @@
         <!-- CV: Education Section -->
         <section id="cv_education">
           <div class="section_title">
-            <h3>Formation</h3>
+            <h3>{{ t().education.title }}</h3>
           </div>
           <div class="fn_cs_boxed_list">
             <ul>
@@ -221,12 +257,8 @@
                     <h5>iPNet Institute Of Technology</h5>
                     <span>( 2022 — 2026 )</span>
                   </div>
-                  <h3>Licence en Génie Logiciel</h3>
-                  <p>
-                    Développement logiciel, systèmes distribués, gestion de
-                    projet, programmation système et réalisation de plusieurs
-                    projets pratiques intégrant des technologies modernes.
-                  </p>
+                  <h3>{{ t().education.degree }}</h3>
+                  <p>{{ t().education.degreeText }}</p>
                 </div>
               </li>
               <li>
@@ -235,10 +267,8 @@
                     <h5>Lycée El-Nour de Kara</h5>
                     <span>( 2022 )</span>
                   </div>
-                  <h3>Baccalauréat</h3>
-                  <p>
-                    Obtention du Baccalauréat en 2022 avec la mention Bien.
-                  </p>
+                  <h3>{{ t().education.bac }}</h3>
+                  <p>{{ t().education.bacText }}</p>
                 </div>
               </li>
             </ul>
@@ -249,225 +279,80 @@
         <!-- CV: stack Section -->
         <section id="clients" class="section_clients">
           <div class="section_title">
-            <h3>Ma stack</h3>
+            <h3>{{ t().stack.title }}</h3>
           </div>
-          <h4 class="stack_group_title">Front-end</h4>
-          <div class="clients_wrapper stack_group cols_3">
-            <ul>
-                <li>
-                  <a href="https://angular.dev/" target="_blank" rel="noopener" title="Angular">
-                    <img src="img/clients/angular-ar21.svg" alt="Angular" />
-                  </a>
-                </li>
-                <li>
-                  <a href="https://vuejs.org/" target="_blank" rel="noopener" title="Vue.js">
-                    <img src="img/clients/vuejs-ar21~bgwhite.svg" alt="Vue.js" />
-                  </a>
-                </li>
-                <li>
-                  <a href="https://tailwindcss.com/" target="_blank" rel="noopener" title="Tailwind CSS">
-                    <img src="img/clients/tailwindcss-ar21.svg" alt="Tailwind CSS" />
-                  </a>
-                </li>
-            </ul>
-          </div>
-          <h4 class="stack_group_title">Back-end</h4>
-          <div class="clients_wrapper stack_group cols_3">
-            <ul>
-                <li>
-                  <a href="https://spring.io/" target="_blank" rel="noopener" title="Spring Boot">
-                    <img src="img/clients/springio-ar21.svg" alt="Spring Boot" />
-                  </a>
-                </li>
-                <li>
-                  <a href="https://www.djangoproject.com/" target="_blank" rel="noopener" title="Django">
-                    <img src="img/clients/djangoproject-ar21.svg" alt="Django" />
-                  </a>
-                </li>
-                <li>
-                  <a href="https://symfony.com/" target="_blank" rel="noopener" title="Symfony">
-                    <img src="img/clients/symfony-ar21~bgwhite.svg" alt="Symfony" />
-                  </a>
-                </li>
-            </ul>
-          </div>
-          <h4 class="stack_group_title">Mobile &amp; Design</h4>
-          <div class="clients_wrapper stack_group cols_2">
-            <ul>
-                <li>
-                  <a href="https://flutter.dev/" target="_blank" rel="noopener" title="Flutter">
-                    <img src="img/clients/flutterio-ar21.svg" alt="Flutter" />
-                  </a>
-                </li>
-                <li>
-                  <a href="https://www.figma.com/" target="_blank" rel="noopener" title="Figma">
-                    <img src="img/clients/figma-ar21~bgwhite.svg" alt="Figma" />
-                  </a>
-                </li>
-            </ul>
-          </div>
+          @for (group of stackGroups; track group.title; let odd = $odd) {
+            <div class="stack_group">
+              <h4 class="stack_group_title">{{ group.title }}</h4>
+              <div class="clients_wrapper stack_marquee" [class.reverse]="odd">
+                <div class="marquee_track" [style.--marquee-duration]="group.tiles.length * 3 + 's'">
+                  @for (copy of [0, 1]; track copy) {
+                    <ul [attr.aria-hidden]="copy === 1 ? 'true' : null">
+                      @for (tech of group.tiles; track $index) {
+                        <li>
+                          <a
+                            [href]="tech.url"
+                            target="_blank"
+                            rel="noopener"
+                            [title]="tech.name"
+                            [attr.tabindex]="copy === 1 ? -1 : null"
+                          >
+                            <img [src]="tech.logo" [alt]="copy === 1 ? '' : tech.name" />
+                          </a>
+                        </li>
+                      }
+                    </ul>
+                  }
+                </div>
+              </div>
+            </div>
+          }
         </section>
         <!-- /CV: stack Section -->
 
         <!-- CV: Portfolio Section -->
         <section id="tips" class="section_tips">
           <div class="section_title">
-            <h3>Derniers projets</h3>
+            <h3>{{ t().projects.title }}</h3>
           </div>
 
           <div class="tips_content">
-            <ul class="modal_items" data-from="blog" data-count="3">
-              <li>
-                <div class="item modal_item" data-index="1">
-                  <div class="item_left">
-                    <p>2025</p>
-                    <h5>
-                      <a href="#"
-                        >Application de signalement des problèmes d'infrastructures urbaines</a
-                      >
-                    </h5>
-                    <a href="#" class="read_more">Lire la suite</a>
-                    <div class="fn__hidden">
-                      <p class="fn__cat">2025</p>
-                      <h3 class="fn__title">
-                        Application de signalement des problèmes d'infrastructures urbaines
-                      </h3>
-                      <div class="img_holder">
-                        <img src="img/thumb/square.jpg" alt="" />
-                        <div
-                          class="abs_img"
-                          data-bg-img="img/portfolio/citizen-web.jpg"
-                        ></div>
+            <!-- Fenêtre projets gérée par jQuery (init7dd3.js) : « track $index »
+                 garde les mêmes éléments au changement de langue, donc les
+                 clics branchés par jQuery restent actifs. -->
+            <ul class="modal_items" data-from="blog" [attr.data-count]="t().projects.items.length">
+              @for (project of t().projects.items; track $index; let i = $index) {
+                <li>
+                  <div class="item modal_item" [attr.data-index]="i + 1">
+                    <div class="item_left">
+                      <p>{{ project.year }}</p>
+                      <h5>
+                        <a href="#">{{ project.title }}</a>
+                      </h5>
+                      <a href="#" class="read_more">{{ t().projects.readMore }}</a>
+                      <div class="fn__hidden">
+                        <p class="fn__cat">{{ project.year }}</p>
+                        <h3 class="fn__title">{{ project.title }}</h3>
+                        <div class="img_holder">
+                          <img src="img/thumb/square.jpg" alt="" />
+                          <div class="abs_img" [attr.data-bg-img]="project.image"></div>
+                        </div>
+                        <p class="fn__desc">
+                          {{ t().projects.repos }}{{ t().colon }}
+                          @for (repo of project.repos; track $index; let last = $last) {
+                            <a [href]="repo.url" target="_blank" rel="noopener">{{ repo.label }}</a>
+                            @if (!last) { | }
+                          }
+                        </p>
+                        <p class="fn__desc">{{ project.description }}</p>
                       </div>
-                      <p class="fn__desc">
-                        Dépôts GitHub :
-                        <a
-                          href="https://github.com/Nabil-wizard-dev/SignalementApp_api"
-                          >backend</a
-                        >
-                        |
-                        <a
-                          href="https://github.com/Nabil-wizard-dev/SignalementApp_web-admin"
-                          >web</a
-                        >
-                        |
-                        <a
-                          href="https://github.com/Nabil-wizard-dev/SignalementApp_mobile"
-                          >mobile</a
-                        >
-                      </p>
-                      <p class="fn__desc">
-                        Plateforme de création et de traitement de signalements.
-                        Elle permet aux citoyens d'une localité de signaler des
-                        dégradations du domaine public ou d'autres anomalies.
-                        Les autorités (la mairie ou un autre service de la
-                        collectivité) prennent ensuite en charge ces
-                        signalements via la plateforme : enregistrement du
-                        signalement, affectation d'un agent et suivi de son
-                        intervention, l'agent mettant à jour le statut de ses
-                        tâches au fur et à mesure de l'avancement des travaux.
-                      </p>
+                    </div>
+                    <div class="item_right">
+                      <div class="abs_img" [attr.data-bg-img]="project.image"></div>
                     </div>
                   </div>
-                  <div class="item_right">
-                    <div
-                      class="abs_img"
-                      data-bg-img="img/portfolio/citizen-web.jpg"
-                    ></div>
-                  </div>
-                </div>
-              </li>
-
-              <li>
-                <div class="item modal_item" data-index="2">
-                  <div class="item_left">
-                    <p>2024</p>
-                    <h5>
-                      <a href="#"
-                        >Plateforme de promotion de biens immobiliers</a
-                      >
-                    </h5>
-                    <a href="#" class="read_more">Lire la suite</a>
-                    <div class="fn__hidden">
-                      <p class="fn__cat">2024</p>
-                      <h3 class="fn__title">
-                        Plateforme de promotion de biens immobiliers
-                      </h3>
-                      <div class="img_holder">
-                        <img src="img/thumb/square.jpg" alt="" />
-                        <div class="abs_img" data-bg-img="img/blog/2.jpg"></div>
-                      </div>
-                      <p class="fn__desc">
-                        Dépôts GitHub :
-                        <a
-                          href="https://github.com/Nabil-wizard-dev/Plateforme-Immobiliere"
-                          >cliquez ici</a
-                        >
-                      </p>
-                      <p class="fn__desc">
-                        Application web développée avec Django qui facilite la
-                        recherche et la promotion de biens immobiliers. Elle
-                        s'adresse aux propriétaires souhaitant mettre en valeur
-                        leurs biens et aux utilisateurs à la recherche de leur
-                        prochain logement ou investissement immobilier.
-                      </p>
-                    </div>
-                  </div>
-                  <div class="item_right">
-                    <div class="abs_img" data-bg-img="img/blog/2.jpg"></div>
-                  </div>
-                </div>
-              </li>
-
-              <li>
-                <div class="item modal_item" data-index="3">
-                  <div class="item_left">
-                    <p>2025</p>
-                    <h5>
-                      <a href="#"
-                        >Plateforme universitaire de suggestions, plaintes et
-                        réclamations</a
-                      >
-                    </h5>
-                    <a href="#" class="read_more">Lire la suite</a>
-                    <div class="fn__hidden">
-                      <p class="fn__cat">2025</p>
-                      <h3 class="fn__title">
-                        Plateforme universitaire de suggestions, plaintes et réclamations
-                      </h3>
-                      <div class="img_holder">
-                        <img src="img/thumb/square.jpg" alt="" />
-                        <div class="abs_img" data-bg-img="img/blog/6.jpg"></div>
-                      </div>
-                      <p class="fn__desc">
-                        Dépôts GitHub :
-                        <a
-                          href="https://github.com/Nabil-wizard-dev/MiabeGne_backend"
-                          >backend</a
-                        >
-                        |
-                        <a
-                          href="https://github.com/Nabil-wizard-dev/Miabe_Gbe_web"
-                          >web</a
-                        >
-                      </p>
-                      <p class="fn__desc">
-                        Cette plateforme offre aux étudiants, au personnel et
-                        aux enseignants un moyen simple et transparent de
-                        s'exprimer. Les utilisateurs peuvent proposer des
-                        suggestions pour améliorer la vie du campus, signaler
-                        les problèmes rencontrés ou déposer des réclamations
-                        nécessitant un suivi officiel. Chaque demande est suivie,
-                        catégorisée et traitée dans les meilleurs délais, ce qui
-                        aide l'université à être plus réactive et à l'écoute.
-                      </p>
-                    </div>
-                  </div>
-                  <div class="item_right">
-                    <div class="abs_img" data-bg-img="img/blog/6.jpg"></div>
-                  </div>
-                </div>
-              </li>
+                </li>
+              }
             </ul>
           </div>
 
@@ -478,7 +363,7 @@
               target="_blank"
               rel="noopener"
             >
-              <span class="text">Mon GitHub</span>
+              <span class="text">{{ t().projects.github }}</span>
             </a>
           </div>
         </section>
@@ -487,7 +372,7 @@
         <!-- CV: Contact Section -->
         <section id="contact" class="section_contact">
           <div class="section_title">
-            <h3>Me contacter</h3>
+            <h3>{{ t().contact.title }}</h3>
           </div>
           <form
             class="contact_form"
@@ -502,10 +387,11 @@
 						-->
             <div
               class="success"
-              data-success="Votre message a bien été reçu, je vous recontacterai très bientôt."
+              [attr.data-success]="t().contact.success"
+              [attr.data-error]="t().contact.error"
             ></div>
             <div class="empty_notice">
-              <span>Veuillez remplir les champs obligatoires !</span>
+              <span>{{ t().contact.empty }}</span>
             </div>
             <!-- -->
 
@@ -513,26 +399,26 @@
               <div class="items">
                 <div class="item half">
                   <div class="input_wrapper">
-                    <input id="name" type="text" placeholder="Nom *" />
+                    <input id="name" type="text" [placeholder]="t().contact.name" />
                   </div>
                 </div>
                 <div class="item half">
                   <div class="input_wrapper">
-                    <input id="email" type="email" placeholder="Email *" />
+                    <input id="email" type="email" [placeholder]="t().contact.email" />
                   </div>
                 </div>
                 <div class="item">
                   <div class="input_wrapper">
-                    <input id="phone" type="text" placeholder="Téléphone" />
+                    <input id="phone" type="text" [placeholder]="t().contact.phone" />
                   </div>
                 </div>
                 <div class="item">
                   <div class="input_wrapper">
-                    <textarea id="message" placeholder="Message"></textarea>
+                    <textarea id="message" [placeholder]="t().contact.message"></textarea>
                   </div>
                 </div>
                 <div class="item">
-                  <a id="send_message" href="#">Envoyer le message</a>
+                  <a id="send_message" href="#">{{ t().contact.send }}</a>
                 </div>
               </div>
             </div>

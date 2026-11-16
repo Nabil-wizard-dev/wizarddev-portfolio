@@ -14,6 +14,77 @@
 :host-context(.light) .intro_text {
   color: #111;
 }
+/* ------------------------------------------------------------------
+   Tuile « CV » dans la rangée des réseaux : même fond, même hauteur,
+   même survol que LinkedIn / GitHub / TikTok ; seul le libellé l'élargit.
+------------------------------------------------------------------- */
+.social a.cv_tile {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  width: auto;
+  padding: 0 14px 0 12px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  line-height: 1;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+.cv_icon {
+  flex: none;
+  overflow: visible;
+}
+.cv_arrow {
+  transition: transform 0.35s var(--fx-ease);
+}
+/* la flèche « descend » vers le plateau, comme un téléchargement */
+.social a.cv_tile:hover .cv_arrow,
+.social a.cv_tile:focus-visible .cv_arrow {
+  transform: translateY(2px);
+}
+.social a:focus-visible {
+  outline: 2px solid var(--mc);
+  outline-offset: 2px;
+}
+
+/* lien « Me contacter » : le bleu par défaut du navigateur était illisible en sombre */
+.contact_link {
+  color: #8fa0ff;
+  font-size: 17px;
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition: text-underline-offset 0.3s var(--fx-ease);
+}
+:host-context(.light) .contact_link {
+  color: var(--mc);
+}
+.contact_link:hover {
+  text-underline-offset: 6px;
+}
+.contact_link:focus-visible {
+  outline: 2px solid var(--mc);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Grand écran peu haut (portable 13") : la carte doit tenir sans défiler */
+@media (min-width: 1041px) and (max-height: 760px) {
+  .deebo_fn__cv .cv__header .avatar img {
+    max-width: 150px;
+    max-height: 150px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cv_arrow,
+  .contact_link {
+    transition: none;
+  }
+}
 
 .social img.fn__svg {
   filter: brightness(0) invert(1);
@@ -28,9 +99,33 @@
   margin: -10px auto 15px;
 }
 
-/* Stack grouped by domain */
+/* ------------------------------------------------------------------
+   Ma stack : une section exactement aussi haute que la carte de gauche,
+   trois bandes qui se partagent la hauteur et défilent en continu.
+------------------------------------------------------------------- */
+.section_clients {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.section_clients .section_title {
+  flex: none;
+  margin-bottom: clamp(16px, 3.5vh, 40px);
+}
+
+.stack_group {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-height: 0;
+}
+.stack_group + .stack_group {
+  margin-top: clamp(12px, 2.5vh, 28px);
+}
+
 .stack_group_title {
-  margin: 0 0 12px;
+  flex: none;
+  margin: 0 0 10px;
   font-size: 14px;
   font-weight: 600;
   text-transform: uppercase;
@@ -40,23 +135,288 @@
 :host-context(.light) .stack_group_title {
   color: #555;
 }
-.stack_group {
-  margin-bottom: 30px;
+
+/* La bande : bords estompés pour que les logos entrent et sortent en douceur */
+.stack_marquee {
+  flex: 1 1 auto;
+  min-height: 64px;
+  max-height: 170px;
+  /* la piste fait plusieurs milliers de px : sans ça, elle élargit les
+     conteneurs flottants du template (défilement horizontal en mobile) */
+  contain: inline-size;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
 }
-.stack_group ul li {
-  height: 150px;
-  line-height: 150px;
+
+.marquee_track {
+  display: flex;
+  width: max-content;
+  height: 100%;
+  animation: stack-marquee var(--marquee-duration, 36s) linear infinite;
 }
-.stack_group.cols_3 ul li {
-  width: 33.3333%;
+.stack_marquee.reverse .marquee_track {
+  animation-direction: reverse;
 }
-.stack_group.cols_2 ul li {
-  width: 50%;
+/* pause au survol ou quand un logo reçoit le focus clavier */
+.stack_marquee:hover .marquee_track,
+.stack_marquee:focus-within .marquee_track {
+  animation-play-state: paused;
 }
-@media (max-width: 600px) {
-  .stack_group.cols_3 ul li,
-  .stack_group.cols_2 ul li {
-    width: 50%;
+
+/* annule la grille flottante du template */
+.stack_marquee ul {
+  display: flex;
+  flex: none;
+  float: none;
+  height: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+}
+.stack_marquee ul li {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  float: none;
+  width: clamp(130px, 13vw, 190px);
+  height: 100%;
+  margin: 0;
+  line-height: normal;
+  border-width: 0 1px 0 0;
+}
+.stack_marquee a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+.stack_marquee a:focus-visible {
+  outline: 2px solid var(--mc);
+  outline-offset: -4px;
+}
+.stack_marquee img {
+  width: 80%;
+  max-width: 140px;
+  height: auto;
+  max-height: 70%;
+}
+
+@keyframes stack-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
   }
 }
 
+/* Mobile : la section prend la hauteur d'un écran, comme la carte de profil */
+@media (max-width: 1040px) {
+  .section_clients {
+    height: calc(100vh - 40px);
+    height: calc(100dvh - 40px);
+  }
+}
+@media (max-width: 600px) {
+  .section_clients {
+    height: calc(100vh - 20px);
+    height: calc(100dvh - 20px);
+  }
+}
+
+/* Mouvement réduit : la bande s'arrête et se parcourt à la main */
+@media (prefers-reduced-motion: reduce) {
+  .marquee_track {
+    animation: none;
+  }
+  .stack_marquee {
+    overflow-x: auto;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .stack_marquee ul[aria-hidden='true'] {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Langue + thème (en haut à droite)
+   Convention du template : sombre par défaut, surcharges sous .light.
+------------------------------------------------------------------- */
+.visually_hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.page_controls {
+  --toggle-bg: #2a2a2a;
+  position: fixed;
+  top: 8px;
+  right: 70px;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  height: 34px;
+  color: #eee;
+  color-scheme: dark; /* liste déroulante native en sombre */
+}
+:host-context(.light) .page_controls {
+  --toggle-bg: #fff;
+  color: #111;
+  color-scheme: light;
+}
+
+/* Sélecteur de langue : « En ⌄ » */
+.lang_select {
+  position: relative;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+.lang_select select {
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+  padding: 4px 22px 4px 6px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+}
+.lang_select select:focus-visible {
+  outline: 2px solid var(--mc);
+  outline-offset: 2px;
+}
+.lang_select .chevron {
+  position: absolute;
+  right: 4px;
+  pointer-events: none;
+  transition: transform 0.3s var(--fx-ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .lang_select:hover .chevron {
+    transform: translateY(2px);
+  }
+}
+
+/* Interrupteur de thème : soleil jaune à droite (clair),
+   croissant de lune à gauche (sombre) */
+.theme_toggle {
+  position: relative;
+  flex: none;
+  width: 58px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid #3a3a3a;
+  border-radius: 999px;
+  background-color: var(--toggle-bg);
+  cursor: pointer;
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 35%);
+  transition:
+    background-color 0.4s var(--fx-ease),
+    border-color 0.4s var(--fx-ease);
+}
+:host-context(.light) .theme_toggle {
+  border-color: rgb(0 0 0 / 8%);
+  box-shadow:
+    0 2px 6px rgb(0 0 0 / 8%),
+    inset 0 1px 1px rgb(0 0 0 / 4%);
+}
+.theme_toggle:focus-visible {
+  outline: 2px solid var(--mc);
+  outline-offset: 3px;
+}
+
+/* Rayon de la « morsure » qui transforme le disque en croissant.
+   Déclarée pour pouvoir l'animer (sinon elle change d'un coup). */
+@property --moon-bite {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+.theme_toggle .knob {
+  --moon-bite: 10px;
+  position: absolute;
+  top: 50%;
+  left: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: #f2f2f2;
+  transform: translateY(-50%);
+  /* Le croissant est découpé par un masque : la partie « mordue » est
+     réellement transparente, aucun bord du disque ne peut dépasser. */
+  -webkit-mask-image: radial-gradient(
+    circle at 82% 20%,
+    transparent calc(var(--moon-bite) - 0.5px),
+    #000 var(--moon-bite)
+  );
+  mask-image: radial-gradient(
+    circle at 82% 20%,
+    transparent calc(var(--moon-bite) - 0.5px),
+    #000 var(--moon-bite)
+  );
+  transition:
+    transform 0.5s var(--fx-ease),
+    background-color 0.4s var(--fx-ease),
+    box-shadow 0.4s var(--fx-ease),
+    --moon-bite 0.5s var(--fx-ease);
+}
+
+:host-context(.light) .theme_toggle .knob {
+  --moon-bite: 0px;
+  /* pas de masque en clair : il couperait aussi l'ombre du soleil */
+  -webkit-mask-image: none;
+  mask-image: none;
+  background-color: #ffd21f;
+  box-shadow: 0 1px 3px rgb(160 110 0 / 35%);
+  transform: translate(28px, -50%);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .theme_toggle:hover {
+    border-color: #555;
+  }
+  :host-context(.light) .theme_toggle:hover {
+    border-color: rgb(0 0 0 / 16%);
+  }
+}
+
+/* Mobile : les contrôles passent au-dessus des cartes, on leur donne un fond */
+@media (max-width: 1040px) {
+  .page_controls {
+    top: 18px;
+    right: 22px;
+    height: 40px;
+    gap: 12px;
+    padding: 0 6px 0 8px;
+    border-radius: 10px; /* même arrondi que les sections */
+    background-color: #191919;
+    box-shadow: 0 4px 14px rgb(0 0 0 / 35%);
+  }
+  :host-context(.light) .page_controls {
+    background-color: #fff;
+    box-shadow: 0 4px 14px rgb(0 0 0 / 10%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme_toggle,
+  .theme_toggle .knob,
+  .lang_select .chevron {
+    transition: none;
+  }
+}

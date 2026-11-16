@@ -1,11 +1,31 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, computed, signal } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Inject, OnDestroy, computed, effect, signal } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { Meta, Title } from '@angular/platform-browser';
+import { LANGS, Lang, TRANSLATIONS } from './i18n';
 
 declare const FrenifyDeebo: { init: () => void } | undefined;
 
-interface NavSection {
-  id: string;
-  label: string;
+interface Tech {
+  name: string;
+  url: string;
+  logo: string;
 }
+
+interface StackGroup {
+  title: string;
+  /** Une « copie » de la bande : les technos répétées pour couvrir la largeur. */
+  tiles: Tech[];
+}
+
+/** Tuiles minimum par copie, pour qu'une copie soit plus large que la bande même sur un grand écran. */
+const MIN_TILES_PER_COPY = 12;
+
+function stackGroup(title: string, items: Tech[]): StackGroup {
+  const repeat = Math.ceil(MIN_TILES_PER_COPY / items.length);
+  return { title, tiles: Array.from({ length: repeat }, () => items).flat() };
+}
+
+type Theme = 'light' | 'dark';
 
 @Component({
   selector: 'app-root',
@@ -14,12 +34,40 @@ interface NavSection {
 })
 export class AppComponent implements AfterViewInit, OnDestroy {
   /** Sections du contenu, dans l'ordre d'affichage (navigation par points). */
-  readonly sections: NavSection[] = [
-    { id: 'cv_biography', label: 'Biographie' },
-    { id: 'cv_education', label: 'Formation' },
-    { id: 'clients', label: 'Ma stack' },
-    { id: 'tips', label: 'Projets' },
-    { id: 'contact', label: 'Contact' },
+  readonly sections = ['cv_biography', 'cv_education', 'clients', 'tips', 'contact'];
+
+  readonly langs = LANGS;
+  /** Langue affichée : français par défaut. */
+  readonly lang = signal<Lang>('fr');
+  /** Textes de la langue courante. */
+  readonly t = computed(() => TRANSLATIONS[this.lang()]);
+
+  /** Thème : clair par défaut. */
+  readonly theme = signal<Theme>('light');
+
+  /**
+   * Ma stack : chaque groupe défile en continu (bande « marquee »).
+   * La bande contient deux copies identiques ; elle glisse de la largeur
+   * d'une copie puis recommence, sans saut visible.
+   */
+  readonly stackGroups: StackGroup[] = [
+    stackGroup('Front-end', [
+      { name: 'Angular', url: 'https://angular.dev/', logo: 'img/clients/angular-ar21.svg' },
+      { name: 'Vue.js', url: 'https://vuejs.org/', logo: 'img/clients/vuejs-ar21~bgwhite.svg' },
+      { name: 'Tailwind CSS', url: 'https://tailwindcss.com/', logo: 'img/clients/tailwindcss-ar21.svg' },
+    ]),
+    stackGroup('Back-end', [
+      { name: 'Spring Boot', url: 'https://spring.io/', logo: 'img/clients/springio-ar21.svg' },
+      { name: 'Django', url: 'https://www.djangoproject.com/', logo: 'img/clients/djangoproject-ar21.svg' },
+      { name: 'Symfony', url: 'https://symfony.com/', logo: 'img/clients/symfony-ar21~bgwhite.svg' },
+      { name: 'Laravel', url: 'https://laravel.com/', logo: 'img/clients/laravel-ar21.svg' },
+      { name: 'Oracle', url: 'https://www.oracle.com/database/', logo: 'img/clients/oracle-ar21.svg' },
+    ]),
+    stackGroup('Mobile & Design', [
+      { name: 'Flutter', url: 'https://flutter.dev/', logo: 'img/clients/flutterio-ar21.svg' },
+      { name: 'React Native CLI', url: 'https://reactnative.dev/', logo: 'img/clients/reactjs-ar21.svg' },
+      { name: 'Figma', url: 'https://www.figma.com/', logo: 'img/clients/figma-ar21~bgwhite.svg' },
+    ]),
   ];
 
   /** Section actuellement au centre de l'écran. */
@@ -39,7 +87,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     if (active === null) {
       return false;
     }
-    const index = this.sections.findIndex((s) => s.id === active);
+    const index = this.sections.indexOf(active);
     return this.isSmallScreen() ? index >= 0 : index > 0;
   });
 
@@ -47,7 +95,38 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   private mediaQuery?: MediaQueryList;
   private readonly onMediaChange = (e: MediaQueryListEvent) => this.isSmallScreen.set(e.matches);
 
-  constructor(private readonly host: ElementRef<HTMLElement>) {}
+  constructor(
+    private readonly host: ElementRef<HTMLElement>,
+    @Inject(DOCUMENT) private readonly document: Document,
+    title: Title,
+    meta: Meta
+  ) {
+    // Langue : attribut lang de la page, titre de l'onglet et description.
+    effect(() => {
+      const t = this.t();
+      this.document.documentElement.lang = this.lang();
+      title.setTitle(t.meta.title);
+      meta.updateTag({ name: 'description', content: t.meta.description });
+    });
+
+    // Thème : le template CSS attend la classe « light » sur <body>
+    // (sans elle, il affiche le mode sombre).
+    effect(() => {
+      const isLight = this.theme() === 'light';
+      this.document.body.classList.toggle('light', isLight);
+      this.document.body.classList.toggle('dark', !isLight);
+    });
+  }
+
+  setLang(lang: string): void {
+    if (lang in TRANSLATIONS) {
+      this.lang.set(lang as Lang);
+    }
+  }
+
+  toggleTheme(): void {
+    this.theme.update((theme) => (theme === 'light' ? 'dark' : 'light'));
+  }
 
   ngAfterViewInit(): void {
     // The template's jQuery script runs on document ready, before Angular

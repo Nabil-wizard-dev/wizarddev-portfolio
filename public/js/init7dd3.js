@@ -27,28 +27,11 @@
 			FrenifyDeebo.modal();
 			FrenifyDeebo.contactForm();
 			FrenifyDeebo.anchor();
-			FrenifyDeebo.darklight();
 		},
 
 		
-		darklight: function(){
-			var body 		= $('body');
-			var checkbox 	= $('.deebo_fn_switcher_wrap input');
+		// Thème clair/sombre et langue : gérés par Angular (AppComponent).
 
-			body.removeClass('dark').addClass('light');
-			checkbox.prop('checked', false);
-
-			checkbox.off('change').on('change',function(){
-				var checkBox = $(this);
-				if(checkBox.is(':checked')){
-					body.removeClass('light').addClass('dark');
-				}else{
-					body.removeClass('dark').addClass('light');
-				}
-				return false;
-			});
-		},
-		
 		anchor: function(){
 
 			// Native smooth scrolling: compatible with the section-by-section scroll-snap
@@ -70,7 +53,9 @@
 				var message 	= $("#message").val();
 				var phone 		= $("#phone").val();
 				var spanSuccess	= form.find(".success");
-				var success     = spanSuccess.data('success');
+				// attr() et non data() : jQuery mettrait en cache le texte de la 1re langue
+				var success     = spanSuccess.attr('data-success');
+				var errorText   = spanSuccess.attr('data-error');
 				var emailto     = form.data('email');
 
 				spanSuccess.empty();
@@ -78,7 +63,7 @@
 					$('.empty_notice').slideDown(500).delay(2000).slideUp(500);
 				}
 				else if(typeof emailjs === 'undefined'){
-					spanSuccess.append("<span class='contact_error'>Une erreur est survenue, veuillez réessayer plus tard.</span>");
+					spanSuccess.append("<span class='contact_error'>" + errorText + "</span>");
 					spanSuccess.slideDown(500).delay(4000).slideUp(500);
 				}
 				else{
@@ -99,7 +84,7 @@
 						spanSuccess.slideDown(500).delay(4000).slideUp(500);
 						form[0].reset();
 					}, function(){
-						spanSuccess.append("<span class='contact_error'>Une erreur est survenue, veuillez réessayer plus tard.</span>");
+						spanSuccess.append("<span class='contact_error'>" + errorText + "</span>");
 						spanSuccess.slideDown(500).delay(4000).slideUp(500);
 					}).finally(function(){
 						button.data('sending', false).css({'pointer-events': '', 'opacity': ''});
