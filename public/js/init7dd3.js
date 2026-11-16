@@ -51,19 +51,15 @@
 		
 		anchor: function(){
 
-			$('.anchor').on('click',function(){
-				var selector = '.cv__content';
-				if($(window).width() <= 1040){
-					selector = 'body,html';
+			// Native smooth scrolling: compatible with the section-by-section scroll-snap
+			// (a jQuery scrollTop animation would fight against the snapping).
+			$('.anchor').off('click').on('click',function(){
+				var target = document.querySelector($.attr(this, 'href'));
+				if(target){
+					target.scrollIntoView({ behavior: 'smooth', block: 'start' });
 				}
-				if($.attr(this, 'href') !== '#'){
-					$(selector).animate({
-						scrollTop: $($.attr(this, 'href')).offset().top
-					}, 800);
-				}
-
 				return false;
-			});	
+			});
 		},
 		
 		contactForm: function(){

@@ -1,1 +1,321 @@
 /* You can add global styles to this file, and also import other style files */
+
+/* ------------------------------------------------------------------
+   Défilement section par section (scroll-snap)
+   - Grand écran : seule la colonne de droite (.cv__content) défile,
+     la carte de gauche reste fixe.
+   - Petit écran (<= 1040px) : tout le bloc (.deebo_fn__cv) défile,
+     la carte de profil devient la première « page ».
+   Chaque section occupe toute la hauteur visible ; un coup de molette
+   ou un swipe amène exactement la section suivante / précédente.
+   Une section plus haute que l'écran reste lisible : on la parcourt
+   avant de passer à la suivante.
+------------------------------------------------------------------- */
+
+/* Grand écran */
+@media (min-width: 1041px) {
+  .deebo_fn__cv .cv__content {
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+    overscroll-behavior: contain;
+  }
+
+  .deebo_fn__cv .cv__content section {
+    min-height: 100%;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+}
+
+/* Petit écran */
+@media (max-width: 1040px) {
+  /* Le template force « overflow: hidden » sur ce bloc en mobile (la page
+     entière défilait). On en fait la zone de défilement, haute d'un écran. */
+  .deebo_fn__cv {
+    height: 100vh;
+    height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+    overscroll-behavior: contain;
+    scroll-padding-top: 20px;
+  }
+
+  .deebo_fn__cv .cv__header,
+  .deebo_fn__cv .cv__content section {
+    min-height: calc(100vh - 40px);
+    min-height: calc(100dvh - 40px);
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  /* la carte de profil est un bloc flex : on garde son contenu centré */
+  .deebo_fn__cv .cv__header .in {
+    min-height: inherit;
+  }
+
+  /* Le template fait entrer la carte et le contenu par les côtés
+     (translateX ±380px). Sur un écran étroit ils sont alors entièrement
+     hors champ pendant l'animation : le navigateur les ignore pour le snap
+     et s'accroche à la Biographie au chargement. Entrée verticale à la place. */
+  .deebo_fn__cv .cv__header,
+  .deebo_fn__cv .cv__content {
+    transform: translateY(40px);
+  }
+  body.resume-opened .deebo_fn__cv .cv__header,
+  body.resume-opened .deebo_fn__cv .cv__content {
+    transform: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .deebo_fn__cv {
+    scroll-padding-top: 10px;
+  }
+
+  .deebo_fn__cv .cv__header,
+  .deebo_fn__cv .cv__content section {
+    min-height: calc(100vh - 20px);
+    min-height: calc(100dvh - 20px);
+  }
+}
+
+/* ------------------------------------------------------------------
+   Effets de scroll (activés par AppComponent via body.scroll-fx)
+   Uniquement transform / opacity : animations calculées par le GPU.
+------------------------------------------------------------------- */
+:root {
+  --fx-ease: cubic-bezier(0.22, 1, 0.36, 1); /* « ease-out-quint » : départ vif, arrivée douce */
+  --fx-duration: 0.8s;
+}
+
+/* 1. Profondeur : la section active est nette, les autres reculent */
+.scroll-fx .deebo_fn__cv .cv__content section {
+  opacity: 0.35;
+  transform: scale(0.94);
+  transform-origin: center center;
+  transition:
+    opacity var(--fx-duration) var(--fx-ease),
+    transform var(--fx-duration) var(--fx-ease),
+    box-shadow var(--fx-duration) var(--fx-ease);
+  will-change: transform, opacity;
+}
+.scroll-fx .deebo_fn__cv .cv__content section.is-active {
+  opacity: 1;
+  transform: none;
+  box-shadow: 0 18px 40px rgb(0 0 0 / 35%);
+}
+.scroll-fx.light .deebo_fn__cv .cv__content section.is-active {
+  box-shadow: 0 18px 40px rgb(0 0 0 / 10%);
+}
+
+/* 2. Dévoilement en cascade du contenu, à la première apparition */
+.scroll-fx .deebo_fn__cv .cv__content section > * {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.7s var(--fx-ease),
+    transform 0.7s var(--fx-ease);
+}
+.scroll-fx .deebo_fn__cv .cv__content section.is-revealed > * {
+  opacity: 1;
+  transform: none;
+}
+.scroll-fx .cv__content section.is-revealed > :nth-child(1) { transition-delay: 0.10s; }
+.scroll-fx .cv__content section.is-revealed > :nth-child(2) { transition-delay: 0.20s; }
+.scroll-fx .cv__content section.is-revealed > :nth-child(3) { transition-delay: 0.30s; }
+.scroll-fx .cv__content section.is-revealed > :nth-child(4) { transition-delay: 0.40s; }
+.scroll-fx .cv__content section.is-revealed > :nth-child(5) { transition-delay: 0.50s; }
+.scroll-fx .cv__content section.is-revealed > :nth-child(n + 6) { transition-delay: 0.60s; }
+
+/* la ligne bleue sous le titre se dessine */
+.scroll-fx .cv__content section .section_title h3:after {
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.9s var(--fx-ease) 0.35s;
+}
+.scroll-fx .cv__content section.is-revealed .section_title h3:after {
+  transform: scaleX(1);
+}
+
+/* 3. Navigation par points */
+.section_dots {
+  position: fixed;
+  top: 50%;
+  right: 16px;
+  z-index: 100;
+  transform: translateY(-50%);
+}
+.section_dots ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.section_dots button {
+  position: relative;
+  display: block;
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background-color: rgb(255 255 255 / 30%);
+  cursor: pointer;
+  transition:
+    height 0.5s var(--fx-ease),
+    background-color 0.3s ease;
+}
+.light .section_dots button {
+  background-color: rgb(0 0 0 / 22%);
+}
+.section_dots button::before {
+  /* zone de clic plus confortable que le point lui-même */
+  content: '';
+  position: absolute;
+  inset: -8px;
+}
+.section_dots button:hover,
+.section_dots button:focus-visible {
+  background-color: rgb(255 255 255 / 60%);
+  outline: none;
+}
+.light .section_dots button:hover,
+.light .section_dots button:focus-visible {
+  background-color: rgb(0 0 0 / 45%);
+}
+.section_dots button.active,
+.light .section_dots button.active {
+  height: 26px;
+  background-color: var(--mc);
+}
+.section_dots .dot_label {
+  position: absolute;
+  top: 50%;
+  right: 22px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background-color: #191919;
+  color: #eee;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(8px, -50%);
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s var(--fx-ease);
+}
+.light .section_dots .dot_label {
+  background-color: #fff;
+  color: #111;
+  box-shadow: 0 4px 14px rgb(0 0 0 / 12%);
+}
+.section_dots button:hover .dot_label,
+.section_dots button:focus-visible .dot_label {
+  opacity: 1;
+  transform: translate(0, -50%);
+}
+
+@media (max-width: 1040px) {
+  .section_dots {
+    right: 6px;
+  }
+  .section_dots ul {
+    gap: 10px;
+  }
+}
+@media (max-width: 600px) {
+  .section_dots {
+    display: none;
+  }
+}
+
+/* 4. Bouton « retour en haut » (apparaît sur la dernière section) */
+.back_to_top {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background-color: var(--mc);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 8px 22px rgb(52 82 255 / 35%);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(16px) scale(0.85);
+  transition:
+    opacity 0.4s var(--fx-ease),
+    transform 0.5s var(--fx-ease),
+    visibility 0s linear 0.5s,
+    box-shadow 0.3s ease;
+}
+.back_to_top.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition:
+    opacity 0.4s var(--fx-ease),
+    transform 0.5s var(--fx-ease),
+    visibility 0s,
+    box-shadow 0.3s ease;
+}
+.back_to_top svg {
+  display: block;
+  flex: none;
+  transition: transform 0.3s var(--fx-ease);
+}
+.back_to_top:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: -5px;
+}
+/* Effet de survol réservé aux appareils avec une vraie souris :
+   sur écran tactile, l'état « survolé » reste collé après un appui
+   et la flèche restait décalée vers le haut. */
+@media (hover: hover) and (pointer: fine) {
+  .back_to_top:hover {
+    box-shadow: 0 10px 28px rgb(52 82 255 / 55%);
+  }
+  .back_to_top:hover svg {
+    transform: translateY(-3px);
+  }
+}
+@media (max-width: 1040px) {
+  .back_to_top {
+    right: 16px;
+    bottom: 16px;
+    width: 42px;
+    height: 42px;
+  }
+}
+
+/* 5. Animations réduites si l'utilisateur l'a demandé dans son système */
+@media (prefers-reduced-motion: reduce) {
+  .deebo_fn__cv,
+  .deebo_fn__cv .cv__content {
+    scroll-behavior: auto;
+  }
+  .scroll-fx .deebo_fn__cv .cv__content section,
+  .scroll-fx .deebo_fn__cv .cv__content section > *,
+  .scroll-fx .cv__content section .section_title h3:after {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

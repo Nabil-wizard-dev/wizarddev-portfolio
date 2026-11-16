@@ -12,6 +12,50 @@
   </div>
   <!-- /Light/Dark Switcher -->
 
+  <!-- Navigation par points (section en cours) -->
+  <nav class="section_dots" aria-label="Navigation entre les sections">
+    <ul>
+      @for (section of sections; track section.id) {
+        <li>
+          <button
+            type="button"
+            [class.active]="activeSection() === section.id"
+            [attr.aria-current]="activeSection() === section.id ? 'true' : null"
+            [attr.aria-label]="section.label"
+            (click)="scrollTo(section.id)"
+          >
+            <span class="dot_label">{{ section.label }}</span>
+          </button>
+        </li>
+      }
+    </ul>
+  </nav>
+  <!-- /Navigation par points -->
+
+  <!-- Retour en haut (visible dès qu'on dépasse la première page) -->
+  <button
+    type="button"
+    class="back_to_top"
+    [class.visible]="showBackToTop()"
+    [attr.tabindex]="showBackToTop() ? null : -1"
+    [attr.aria-hidden]="showBackToTop() ? null : 'true'"
+    aria-label="Revenir en haut"
+    title="Revenir en haut"
+    (click)="scrollToTop()"
+  >
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+      <path
+        d="M12 19V5M5 12l7-7 7 7"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  </button>
+  <!-- /Retour en haut -->
+
   <!-- Overlay -->
   <div class="right_bar_overlay"></div>
   <!--/ Overlay -->
@@ -50,7 +94,7 @@
       <div class="cv__bg2"></div>
       <!-- /CV Background -->
 
-      <!-- CV Left Side -->
+      <!-- CV Left Side --> 
       <div class="cv__header">
         <div class="in">
           <div class="avatar centered">
