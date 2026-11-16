@@ -1,0 +1,509 @@
+/* ------------------------------------------------------------------
+   Projets : un paquet de cartes.
+   La carte de devant s'ouvre dans le modal du template ; on la fait
+   glisser (ou on utilise les flèches) pour la renvoyer au fond.
+   Les cartes restent sombres dans les deux thèmes, comme des écrans.
+------------------------------------------------------------------- */
+.section_tips {
+  display: flex;
+  flex-direction: column;
+  overflow-x: clip; /* la carte lancée ne crée pas de défilement horizontal */
+}
+.section_tips .section_title {
+  flex: none;
+}
+
+/* titre à gauche, lien GitHub à droite */
+.tips_head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.github_link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #eee;
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: rgb(255 255 255 / 30%);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 5px;
+  transition:
+    color 0.3s var(--fx-ease),
+    text-decoration-color 0.3s var(--fx-ease);
+}
+:host-context(.light) .github_link {
+  color: #111;
+  text-decoration-color: rgb(0 0 0 / 25%);
+}
+.github_link svg {
+  transition: transform 0.35s var(--fx-ease);
+}
+.github_link:hover,
+:host-context(.light) .github_link:hover {
+  color: var(--mc);
+  text-decoration-color: currentColor;
+}
+.github_link:hover svg {
+  transform: translate(2px, -2px);
+}
+.github_link:focus-visible {
+  outline: 2px solid var(--mc);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.project_deck {
+  position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
+  margin-top: auto; /* avec la marge basse des flèches : le groupe est centré */
+  /* place pour les cartes du fond, qui dépassent vers le haut */
+  padding-top: 36px;
+  outline: none;
+}
+
+.deck_cards {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr); /* l'image ne doit pas imposer sa largeur */
+  width: min(100%, 700px, calc((100dvh - 430px) * 1.25));
+  min-width: min(100%, 300px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ---------- position dans le paquet ---------- */
+.deck_card {
+  --rest: translateY(-52px) scale(0.86);
+  --rest-o: 0;
+  position: relative;
+  grid-area: 1 / 1;
+  z-index: 1;
+  margin: 0;
+  padding: 0;
+  opacity: var(--rest-o);
+  transform: var(--rest);
+  transform-origin: 50% 0;
+  transition:
+    transform 0.6s var(--fx-ease),
+    opacity 0.4s var(--fx-ease);
+  touch-action: pan-y; /* le défilement vertical de la page reste possible */
+  user-select: none;
+  -webkit-user-select: none;
+}
+.deck_card[data-pos='0'] {
+  --rest: translateX(var(--drag-x, 0px)) rotate(var(--drag-r, 0deg));
+  --rest-o: 1;
+  z-index: 4;
+}
+.deck_card[data-pos='1'] {
+  --rest: translateY(-22px) scale(0.95) rotate(-2.2deg);
+  --rest-o: 1;
+  z-index: 3;
+}
+.deck_card[data-pos='2'] {
+  --rest: translateY(-40px) scale(0.9) rotate(1.6deg);
+  --rest-o: 1;
+  z-index: 2;
+}
+.is-dragging .deck_card.is-front {
+  transition: none;
+}
+
+/* les cartes du fond s'assombrissent avec la profondeur */
+.deck_card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  background-color: #05060a;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s var(--fx-ease);
+}
+.deck_card[data-pos='1']::after {
+  opacity: 0.3;
+}
+.deck_card[data-pos='2']::after {
+  opacity: 0.55;
+}
+
+/* ---------- lancer ---------- */
+.deck_card.is-out {
+  animation: deck-out 0.7s cubic-bezier(0.3, 0.7, 0.2, 1) both;
+}
+.deck_card.is-in {
+  animation: deck-in 0.7s cubic-bezier(0.3, 0.7, 0.2, 1) both;
+}
+@keyframes deck-out {
+  0% {
+    z-index: 5;
+    opacity: 1;
+    transform: translateX(var(--drag-x, 0px)) rotate(var(--drag-r, 0deg));
+  }
+  45% {
+    z-index: 5;
+    opacity: 1;
+    transform: translateX(calc(var(--dir) * 72%)) translateY(-3%) rotate(calc(var(--dir) * 11deg));
+  }
+  46% {
+    z-index: 0;
+  }
+  100% {
+    z-index: 0;
+    opacity: var(--rest-o);
+    transform: var(--rest);
+  }
+}
+@keyframes deck-in {
+  0% {
+    z-index: 0;
+    opacity: 0;
+    transform: translateY(-52px) scale(0.86);
+  }
+  50% {
+    z-index: 0;
+    opacity: 1;
+    transform: translateX(calc(var(--dir) * 72%)) translateY(-3%) rotate(calc(var(--dir) * -9deg));
+  }
+  51% {
+    z-index: 5;
+  }
+  100% {
+    z-index: 5;
+    opacity: 1;
+    transform: var(--rest);
+  }
+}
+
+/* ---------- face d'une carte projet ---------- */
+.deck_focus {
+  display: block;
+  height: 100%;
+  padding: 14px 14px 0;
+  border-radius: 18px;
+  background:
+    radial-gradient(120% 85% at 0% 0%, rgb(52 82 255 / 50%), transparent 62%),
+    #101218;
+  box-shadow:
+    0 26px 50px -20px rgb(0 0 0 / 60%),
+    0 2px 6px rgb(0 0 0 / 25%);
+  cursor: grab;
+}
+:host-context(.light) .deck_focus {
+  box-shadow:
+    0 26px 50px -20px rgb(16 24 70 / 45%),
+    0 2px 6px rgb(16 24 70 / 12%);
+}
+.is-dragging .deck_focus {
+  cursor: grabbing;
+}
+.deck_focus:focus-visible {
+  outline: 3px solid var(--mc);
+  outline-offset: 4px;
+}
+
+.card_window {
+  overflow: hidden;
+  border-radius: 10px;
+  background-color: #1b1d26;
+}
+.card_bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 34px;
+  padding: 0 12px;
+  background-color: #0b0c11;
+}
+.card_dots {
+  display: flex;
+  flex: none;
+  gap: 6px;
+}
+.card_dots i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background-color: #ff5f57;
+}
+.card_dots i:nth-child(2) {
+  background-color: #febc2e;
+}
+.card_dots i:nth-child(3) {
+  background-color: #3a3d4a;
+}
+.card_url {
+  min-width: 0;
+  margin: 0 auto;
+  padding: 3px 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background-color: #1c1f2c;
+  color: #a7aecb;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.card_shot {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  object-position: 50% 0;
+  pointer-events: none;
+  transition: transform 0.8s var(--fx-ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .deck_card.is-front:hover .card_shot {
+    transform: scale(1.03);
+  }
+}
+
+.card_caption {
+  padding: 18px 6px 22px;
+}
+.card_title {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: #f4f5fa;
+  font-size: clamp(19px, 1.7vw, 25px);
+  font-weight: 600;
+  line-height: 1.22;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+  min-height: calc(2 * 1.22em); /* toutes les cartes ont la même hauteur */
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.card_meta {
+  margin: 8px 0 0;
+  color: #9ba5d0;
+  font-size: 14px;
+  letter-spacing: 0.4px;
+}
+
+/* ---------- dernière carte : « Le vôtre ? » ---------- */
+.cta_card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 28px;
+  background:
+    radial-gradient(90% 70% at 100% 0%, rgb(255 255 255 / 16%), transparent 60%),
+    var(--mc);
+  color: #fff;
+  text-decoration: none;
+}
+.cta_card:hover,
+.cta_card:focus {
+  color: #fff;
+}
+.cta_card:focus-visible {
+  outline-color: #fff;
+}
+.cta_arrow {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background-color: #0d0e14;
+  color: #fff;
+  transition: transform 0.45s var(--fx-ease);
+}
+.deck_card.is-front .cta_card:hover .cta_arrow {
+  transform: rotate(45deg);
+}
+.cta_title {
+  font-size: clamp(44px, 6vw, 76px);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+.cta_text {
+  margin-top: 14px;
+  color: rgb(255 255 255 / 88%);
+  font-size: 17px;
+  line-height: 1.5;
+}
+.cta_link {
+  color: #fff;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  white-space: nowrap;
+}
+
+/* ---------- bulle « Glisser » qui suit la souris ---------- */
+.deck_bubble {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+  margin: -42px 0 0 -42px;
+  border-radius: 50%;
+  background-color: var(--mc);
+  box-shadow: 0 10px 24px -8px rgb(20 35 140 / 60%);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  pointer-events: none;
+  opacity: 0;
+  scale: 0;
+  transform: translate(var(--bubble-x, 50%), var(--bubble-y, 50%));
+  transition:
+    transform 0.3s var(--fx-ease),
+    scale 0.35s var(--fx-ease),
+    opacity 0.25s var(--fx-ease);
+}
+/* sur la carte « Le vôtre ? », bleue elle aussi, la bulle passe au sombre */
+.project_deck:has(.deck_card--cta.is-front) .deck_bubble {
+  background-color: #0d0e14;
+}
+@media (hover: hover) and (pointer: fine) {
+  .project_deck:has(.deck_card.is-front:hover) .deck_bubble {
+    opacity: 1;
+    scale: 1;
+  }
+  .project_deck.is-dragging .deck_bubble {
+    scale: 0.8;
+  }
+  .deck_card.is-front .deck_focus {
+    cursor: none;
+  }
+}
+
+/* ---------- flèches et compteur ---------- */
+.deck_controls {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  margin-top: clamp(16px, 3vh, 30px);
+  margin-bottom: auto;
+}
+.deck_btn {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 1px solid #393939;
+  border-radius: 50%;
+  background-color: transparent;
+  color: #eee;
+  cursor: pointer;
+  transition:
+    border-color 0.3s var(--fx-ease),
+    color 0.3s var(--fx-ease),
+    transform 0.2s var(--fx-ease);
+}
+:host-context(.light) .deck_btn {
+  border-color: rgb(0 0 0 / 14%);
+  background-color: #fff;
+  color: #111;
+}
+.deck_btn:hover,
+:host-context(.light) .deck_btn:hover {
+  border-color: var(--mc);
+  color: var(--mc);
+}
+.deck_btn:active {
+  transform: scale(0.94);
+}
+.deck_btn:focus-visible {
+  outline: 2px solid var(--mc);
+  outline-offset: 3px;
+}
+.deck_count {
+  min-width: 52px;
+  margin: 0;
+  color: #999;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+:host-context(.light) .deck_count {
+  color: #555;
+}
+
+/* Grand écran peu haut (portable) : on resserre pour que tout tienne */
+@media (min-width: 1041px) and (max-height: 780px) {
+  .section_tips .section_title {
+    margin-bottom: 20px;
+  }
+  .project_deck {
+    padding-top: 30px;
+  }
+  .deck_cards {
+    width: min(100%, 620px, calc((100dvh - 380px) * 1.4));
+  }
+  .card_shot {
+    aspect-ratio: 16 / 9;
+  }
+  .card_caption {
+    padding: 14px 6px 16px;
+  }
+  .card_title {
+    font-size: 19px;
+  }
+  .deck_controls {
+    margin-top: 14px;
+  }
+}
+
+@media (max-width: 600px) {
+  .project_deck {
+    padding-top: 32px;
+  }
+  .deck_focus {
+    padding: 10px 10px 0;
+  }
+  .card_caption {
+    padding: 14px 4px 18px;
+  }
+  .card_title {
+    min-height: calc(3 * 1.22em);
+    -webkit-line-clamp: 3;
+  }
+  .cta_card {
+    padding: 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deck_card {
+    transition: opacity 0.2s linear;
+  }
+  .deck_card.is-out,
+  .deck_card.is-in {
+    animation: none;
+  }
+  .card_shot,
+  .cta_arrow,
+  .github_link svg,
+  .deck_bubble,
+  .deck_btn {
+    transition: none;
+  }
+}

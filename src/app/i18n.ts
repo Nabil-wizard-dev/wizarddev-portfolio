@@ -13,6 +13,8 @@ export const LANGS: { code: Lang; label: string; name: string }[] = [
 
 export interface Project {
   year: string;
+  /** Plateformes livrées, affichées sous le titre sur la carte. */
+  kind: string;
   title: string;
   image: string;
   repos: { label: string; url: string }[];
@@ -78,9 +80,19 @@ const fr = {
     readMore: 'Lire la suite',
     repos: 'Dépôts GitHub',
     github: 'Mon GitHub',
+    deck: 'Mes projets, une carte à la fois',
+    open: 'Voir le détail du projet',
+    drag: 'Glisser',
+    position: (n: number, total: number) => `Carte ${n} sur ${total}`,
+    cta: {
+      title: 'Le vôtre ?',
+      text: 'Un projet en tête ? Parlons-en.',
+      link: 'Me contacter',
+    },
     items: [
       {
         year: '2025',
+        kind: 'Web & mobile',
         title: "Application de signalement des problèmes d'infrastructures urbaines",
         image: 'img/portfolio/citizen-web.jpg',
         repos: [
@@ -93,6 +105,7 @@ const fr = {
       },
       {
         year: '2024',
+        kind: 'Web',
         title: 'Plateforme de promotion de biens immobiliers',
         image: 'img/blog/2.jpg',
         repos: [
@@ -103,6 +116,7 @@ const fr = {
       },
       {
         year: '2025',
+        kind: 'Web',
         title: 'Plateforme universitaire de suggestions, plaintes et réclamations',
         image: 'img/blog/6.jpg',
         repos: [
@@ -187,6 +201,15 @@ const en: Translations = {
     readMore: 'Read more',
     repos: 'GitHub repositories',
     github: 'My GitHub',
+    deck: 'My projects, one card at a time',
+    open: 'View project details',
+    drag: 'Drag',
+    position: (n: number, total: number) => `Card ${n} of ${total}`,
+    cta: {
+      title: 'Yours next?',
+      text: 'Got a project in mind? Let’s talk.',
+      link: 'Get in touch',
+    },
     items: [
       {
         ...fr.projects.items[0],

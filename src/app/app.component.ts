@@ -27,10 +27,23 @@ function stackGroup(title: string, items: Tech[]): StackGroup {
 
 type Theme = 'light' | 'dark';
 
+/** Carte en train d'être lancée hors du paquet (« out ») ou ramenée devant (« in »). */
+interface DeckMotion {
+  index: number;
+  kind: 'out' | 'in';
+  /** 1 : vers la droite, -1 : vers la gauche. */
+  dir: 1 | -1;
+}
+
+/** Distance (px) au-delà de laquelle un glisser lance la carte. */
+const DECK_THROW_DISTANCE = 90;
+/** Durée de l'animation de lancer, alignée sur le CSS (deck-out / deck-in). */
+const DECK_MOTION_MS = 700;
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  styleUrls: ['./app.component.css', './project-deck.css']
 })
 export class AppComponent implements AfterViewInit, OnDestroy {
   /** Sections du contenu, dans l'ordre d'affichage (navigation par points). */
@@ -69,6 +82,22 @@ export class AppComponent implements AfterViewInit, OnDestroy {
       { name: 'Figma', url: 'https://www.figma.com/', logo: 'img/clients/figma-ar21~bgwhite.svg' },
     ]),
   ];
+
+  /**
+   * Projets : un paquet de cartes. La carte de devant s'ouvre dans le
+   * modal du template ; on la fait glisser (ou on utilise les flèches)
+   * pour passer à la suivante. Une dernière carte invite à me contacter.
+   */
+  readonly deckFront = signal(0);
+  readonly deckTotal = computed(() => this.t().projects.items.length + 1);
+  readonly deckMotion = signal<DeckMotion | null>(null);
+  /** Décalage horizontal de la carte pendant qu'on la fait glisser. */
+  readonly dragX = signal(0);
+  readonly dragging = signal(false);
+
+  private drag: { id: number; startX: number; moved: boolean } | null = null;
+  private suppressClick = false;
+  private motionTimer?: ReturnType<typeof setTimeout>;
 
   /** Section actuellement au centre de l'écran. */
   readonly activeSection = signal<string | null>(null);
@@ -128,7 +157,151 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     this.theme.update((theme) => (theme === 'light' ? 'dark' : 'light'));
   }
 
+  /** Rang d'une carte dans le paquet : 0 devant, puis 1, 2… vers l'arrière. */
+  deckPos(index: number): number {
+    const total = this.deckTotal();
+    return (index - this.deckFront() + total) % total;
+  }
+
+  isMoving(index: number, kind: DeckMotion['kind']): boolean {
+    const motion = this.deckMotion();
+    return motion?.index === index && motion.kind === kind;
+  }
+
+  motionDir(index: number): number {
+    const motion = this.deckMotion();
+    return motion?.index === index ? motion.dir : 1;
+  }
+
+  /** Décalage de glisser : la carte de devant le suit, la carte lancée part de là. */
+  cardDrag(index: number): number {
+    const motion = this.deckMotion();
+    if (motion) {
+      return motion.index === index ? this.dragX() : 0;
+    }
+    return this.deckPos(index) === 0 ? this.dragX() : 0;
+  }
+
+  /** Lance la carte de devant (dir 1 : à droite) et fait avancer le paquet. */
+  deckNext(dir: 1 | -1 = 1): void {
+    if (this.deckMotion()) {
+      return;
+    }
+    const leaving = this.deckFront();
+    this.deckFront.set((leaving + 1) % this.deckTotal());
+    this.startMotion({ index: leaving, kind: 'out', dir });
+  }
+
+  /** Ramène devant la carte du fond. */
+  deckPrev(): void {
+    if (this.deckMotion()) {
+      return;
+    }
+    const total = this.deckTotal();
+    const coming = (this.deckFront() - 1 + total) % total;
+    this.deckFront.set(coming);
+    this.startMotion({ index: coming, kind: 'in', dir: -1 });
+  }
+
+  onDeckKey(event: KeyboardEvent): void {
+    if (event.key === 'ArrowRight') {
+      this.deckNext();
+    } else if (event.key === 'ArrowLeft') {
+      this.deckPrev();
+    } else {
+      return;
+    }
+    event.preventDefault();
+    // le focus suit la nouvelle carte de devant
+    setTimeout(() => this.focusFrontCard());
+  }
+
+  /** Entrée / Espace sur la carte de devant : même effet qu'un clic (ouvre le modal). */
+  openFrontCard(event: Event): void {
+    event.preventDefault();
+    (event.currentTarget as HTMLElement).click();
+  }
+
+  onCardPointerDown(event: PointerEvent): void {
+    if (this.deckMotion() || (event.pointerType === 'mouse' && event.button !== 0)) {
+      return;
+    }
+    this.suppressClick = false;
+    this.drag = { id: event.pointerId, startX: event.clientX, moved: false };
+    (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+  }
+
+  onCardPointerMove(event: PointerEvent): void {
+    if (!this.drag || event.pointerId !== this.drag.id) {
+      return;
+    }
+    const dx = event.clientX - this.drag.startX;
+    if (!this.drag.moved && Math.abs(dx) > 6) {
+      this.drag.moved = true;
+      this.dragging.set(true);
+    }
+    if (this.drag.moved) {
+      this.dragX.set(dx);
+    }
+  }
+
+  onCardPointerUp(event: PointerEvent): void {
+    if (!this.drag || event.pointerId !== this.drag.id) {
+      return;
+    }
+    const { moved } = this.drag;
+    const dx = this.dragX();
+    this.drag = null;
+    this.dragging.set(false);
+    if (!moved) {
+      return; // simple clic : le modal s'ouvre
+    }
+    this.suppressClick = true; // un glisser n'est pas un clic
+    if (Math.abs(dx) > DECK_THROW_DISTANCE && event.type === 'pointerup') {
+      this.deckNext(dx > 0 ? 1 : -1); // l'animation part de la position lâchée
+    } else {
+      this.dragX.set(0); // pas assez loin : la carte revient
+    }
+  }
+
+  /** La bulle « Glisser » suit le pointeur au-dessus du paquet (souris uniquement). */
+  moveBubble(event: PointerEvent): void {
+    if (event.pointerType !== 'mouse') {
+      return;
+    }
+    const deck = event.currentTarget as HTMLElement;
+    const box = deck.getBoundingClientRect();
+    deck.style.setProperty('--bubble-x', `${event.clientX - box.left}px`);
+    deck.style.setProperty('--bubble-y', `${event.clientY - box.top}px`);
+  }
+
+  private startMotion(motion: DeckMotion): void {
+    this.deckMotion.set(motion);
+    clearTimeout(this.motionTimer);
+    this.motionTimer = setTimeout(() => {
+      this.deckMotion.set(null);
+      this.dragX.set(0);
+    }, DECK_MOTION_MS);
+  }
+
+  private focusFrontCard(): void {
+    this.host.nativeElement.querySelector<HTMLElement>('.deck_card.is-front .deck_focus')?.focus();
+  }
+
+  /** Après un glisser, le navigateur envoie quand même un clic : on l'arrête avant jQuery. */
+  private readonly onDeckClickCapture = (event: MouseEvent) => {
+    if (this.suppressClick) {
+      this.suppressClick = false;
+      event.stopPropagation();
+      event.preventDefault();
+    }
+  };
+
   ngAfterViewInit(): void {
+    this.host.nativeElement
+      .querySelector('.project_deck')
+      ?.addEventListener('click', this.onDeckClickCapture as EventListener, true);
+
     // The template's jQuery script runs on document ready, before Angular
     // has rendered this component's content, so it never finds any of its
     // elements. Re-run it once the view is actually in the DOM.
@@ -146,6 +319,10 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    clearTimeout(this.motionTimer);
+    this.host.nativeElement
+      .querySelector('.project_deck')
+      ?.removeEventListener('click', this.onDeckClickCapture as EventListener, true);
     this.observer?.disconnect();
     this.mediaQuery?.removeEventListener('change', this.onMediaChange);
   }

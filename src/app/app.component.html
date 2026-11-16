@@ -312,60 +312,138 @@
 
         <!-- CV: Portfolio Section -->
         <section id="tips" class="section_tips">
-          <div class="section_title">
+          <div class="section_title tips_head">
             <h3>{{ t().projects.title }}</h3>
+            <a href="https://github.com/Nabil-wizard-dev" class="github_link" target="_blank" rel="noopener">
+              {{ t().projects.github }}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9" /></svg>
+            </a>
           </div>
 
-          <div class="tips_content">
-            <!-- Fenêtre projets gérée par jQuery (init7dd3.js) : « track $index »
-                 garde les mêmes éléments au changement de langue, donc les
-                 clics branchés par jQuery restent actifs. -->
-            <ul class="modal_items" data-from="blog" [attr.data-count]="t().projects.items.length">
+          <!-- Paquet de cartes. Le modal reste celui du template (init7dd3.js) :
+               il lit .modal_items / .modal_item[data-index] / .fn__hidden.
+               « track $index » garde les mêmes éléments au changement de langue,
+               donc les clics branchés par jQuery restent actifs. -->
+          <div
+            class="project_deck"
+            role="group"
+            aria-roledescription="carousel"
+            [attr.aria-label]="t().projects.deck"
+            [class.is-dragging]="dragging()"
+            (pointermove)="moveBubble($event)"
+            (keydown)="onDeckKey($event)"
+          >
+            <ul class="deck_cards modal_items" data-from="blog" [attr.data-count]="t().projects.items.length">
               @for (project of t().projects.items; track $index; let i = $index) {
-                <li>
-                  <div class="item modal_item" [attr.data-index]="i + 1">
-                    <div class="item_left">
-                      <p>{{ project.year }}</p>
-                      <h5>
-                        <a href="#">{{ project.title }}</a>
-                      </h5>
-                      <a href="#" class="read_more">{{ t().projects.readMore }}</a>
-                      <div class="fn__hidden">
-                        <p class="fn__cat">{{ project.year }}</p>
-                        <h3 class="fn__title">{{ project.title }}</h3>
-                        <div class="img_holder">
-                          <img src="img/thumb/square.jpg" alt="" />
-                          <div class="abs_img" [attr.data-bg-img]="project.image"></div>
-                        </div>
-                        <p class="fn__desc">
-                          {{ t().projects.repos }}{{ t().colon }}
-                          @for (repo of project.repos; track $index; let last = $last) {
-                            <a [href]="repo.url" target="_blank" rel="noopener">{{ repo.label }}</a>
-                            @if (!last) { | }
-                          }
-                        </p>
-                        <p class="fn__desc">{{ project.description }}</p>
+                <li
+                  class="deck_card"
+                  [attr.data-pos]="deckPos(i)"
+                  [class.is-front]="deckPos(i) === 0"
+                  [class.is-out]="isMoving(i, 'out')"
+                  [class.is-in]="isMoving(i, 'in')"
+                  [style.--dir]="motionDir(i)"
+                  [style.--drag-x.px]="cardDrag(i)"
+                  [style.--drag-r.deg]="cardDrag(i) * 0.03"
+                  [attr.aria-hidden]="deckPos(i) !== 0"
+                  [attr.inert]="deckPos(i) !== 0 ? '' : null"
+                >
+                  <div
+                    class="item modal_item deck_focus"
+                    [attr.data-index]="i + 1"
+                    role="button"
+                    tabindex="0"
+                    [attr.aria-label]="project.title + ' — ' + t().projects.open"
+                    (pointerdown)="onCardPointerDown($event)"
+                    (pointermove)="onCardPointerMove($event)"
+                    (pointerup)="onCardPointerUp($event)"
+                    (pointercancel)="onCardPointerUp($event)"
+                    (keydown.enter)="openFrontCard($event)"
+                    (keydown.space)="openFrontCard($event)"
+                  >
+                    <div class="card_window">
+                      <div class="card_bar" aria-hidden="true">
+                        <span class="card_dots"><i></i><i></i><i></i></span>
+                        <span class="card_url">{{ project.repos[0].url.replace('https://', '') }}</span>
                       </div>
+                      <img class="card_shot" [src]="project.image" alt="" draggable="false" />
                     </div>
-                    <div class="item_right">
-                      <div class="abs_img" [attr.data-bg-img]="project.image"></div>
+                    <div class="card_caption">
+                      <h4 class="card_title">{{ project.title }}</h4>
+                      <p class="card_meta">{{ project.year }} · {{ project.kind }}</p>
+                    </div>
+
+                    <div class="fn__hidden">
+                      <p class="fn__cat">{{ project.year }}</p>
+                      <h3 class="fn__title">{{ project.title }}</h3>
+                      <div class="img_holder">
+                        <img src="img/thumb/square.jpg" alt="" />
+                        <div class="abs_img" [attr.data-bg-img]="project.image"></div>
+                      </div>
+                      <p class="fn__desc">
+                        {{ t().projects.repos }}{{ t().colon }}
+                        @for (repo of project.repos; track $index; let last = $last) {
+                          <a [href]="repo.url" target="_blank" rel="noopener">{{ repo.label }}</a>
+                          @if (!last) { | }
+                        }
+                      </p>
+                      <p class="fn__desc">{{ project.description }}</p>
                     </div>
                   </div>
                 </li>
               }
+
+              <!-- Dernière carte : invitation à me contacter -->
+              @let cta = t().projects.items.length;
+              <li
+                class="deck_card deck_card--cta"
+                [attr.data-pos]="deckPos(cta)"
+                [class.is-front]="deckPos(cta) === 0"
+                [class.is-out]="isMoving(cta, 'out')"
+                [class.is-in]="isMoving(cta, 'in')"
+                [style.--dir]="motionDir(cta)"
+                [style.--drag-x.px]="cardDrag(cta)"
+                [style.--drag-r.deg]="cardDrag(cta) * 0.03"
+                [attr.aria-hidden]="deckPos(cta) !== 0"
+                [attr.inert]="deckPos(cta) !== 0 ? '' : null"
+              >
+                <a
+                  href="#contact"
+                  class="cta_card deck_focus"
+                  draggable="false"
+                  (click)="$event.preventDefault(); scrollTo('contact')"
+                  (pointerdown)="onCardPointerDown($event)"
+                  (pointermove)="onCardPointerMove($event)"
+                  (pointerup)="onCardPointerUp($event)"
+                  (pointercancel)="onCardPointerUp($event)"
+                >
+                  <span class="cta_arrow" aria-hidden="true">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9" /></svg>
+                  </span>
+                  <span class="cta_title">{{ t().projects.cta.title }}</span>
+                  <span class="cta_text">
+                    {{ t().projects.cta.text }}
+                    <span class="cta_link">{{ t().projects.cta.link }}</span>
+                  </span>
+                </a>
+              </li>
             </ul>
+
+            <span class="deck_bubble" aria-hidden="true">{{ t().projects.drag }}</span>
           </div>
 
-          <div class="load_more">
-            <a
-              href="https://github.com/Nabil-wizard-dev"
-              class="github_link"
-              target="_blank"
-              rel="noopener"
-            >
-              <span class="text">{{ t().projects.github }}</span>
-            </a>
+          <div class="deck_controls">
+            <button type="button" class="deck_btn" [attr.aria-label]="t().controls.prev" (click)="deckPrev()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6" /></svg>
+            </button>
+            <p class="deck_count" aria-live="polite">
+              <span class="visually_hidden">{{ t().projects.position(deckFront() + 1, deckTotal()) }}</span>
+              <span aria-hidden="true">{{ deckFront() + 1 }} / {{ deckTotal() }}</span>
+            </p>
+            <button type="button" class="deck_btn" [attr.aria-label]="t().controls.next" (click)="deckNext()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            </button>
           </div>
+
         </section>
         <!-- /CV: Portfolio Section -->
 
