@@ -51,6 +51,22 @@
     scroll-snap-stop: always;
   }
 
+  /* Le template pose un « filter: drop-shadow » sur la carte de profil.
+     Dans une zone qui défile, un filtre oblige le navigateur à redessiner
+     toute la carte d'un bloc : au retour en haut, certains éléments (les
+     tuiles des réseaux) pouvaient rester mal redessinés sur téléphone.
+     Même ombre, sans filtre. */
+  .deebo_fn__cv .cv__header,
+  .light .deebo_fn__cv .cv__header {
+    filter: none;
+  }
+  .deebo_fn__cv .cv__header .in {
+    box-shadow: 10px 0 20px rgb(0 0 0 / 35%);
+  }
+  .light .deebo_fn__cv .cv__header .in {
+    box-shadow: 10px 0 20px rgb(0 0 0 / 14%);
+  }
+
   /* la carte de profil est un bloc flex : on garde son contenu centré */
   .deebo_fn__cv .cv__header .in {
     min-height: inherit;
