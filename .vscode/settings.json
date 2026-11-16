@@ -1,0 +1,7 @@
+{
+  // Utilise la version de TypeScript du projet (node_modules) plutôt que
+  // celle intégrée à VS Code, pour que l'éditeur voie les mêmes erreurs
+  // que « ng build ».
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true
+}
