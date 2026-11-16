@@ -19,4 +19,44 @@
   filter: brightness(0) invert(1);
 }
 
+/* Tagline under the name */
+.tagline {
+  color: var(--mc);
+  font-weight: 500;
+  font-size: 17px;
+  letter-spacing: 0.5px;
+  margin: -10px auto 15px;
+}
+
+/* Stack grouped by domain */
+.stack_group_title {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #999;
+}
+:host-context(.light) .stack_group_title {
+  color: #555;
+}
+.stack_group {
+  margin-bottom: 30px;
+}
+.stack_group ul li {
+  height: 150px;
+  line-height: 150px;
+}
+.stack_group.cols_3 ul li {
+  width: 33.3333%;
+}
+.stack_group.cols_2 ul li {
+  width: 50%;
+}
+@media (max-width: 600px) {
+  .stack_group.cols_3 ul li,
+  .stack_group.cols_2 ul li {
+    width: 50%;
+  }
+}
 
