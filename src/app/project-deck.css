@@ -56,6 +56,19 @@
   border-radius: 4px;
 }
 
+/* Mobile : le bloc langue + thème est fixé en haut à droite, pile là où
+   le scroll par section pose le coin du titre. Le lien passe sous le titre,
+   aligné à gauche, pour rester visible dès l'arrivée sur la section. */
+@media (max-width: 1040px) {
+  .tips_head {
+    flex-direction: column;
+    gap: 18px;
+  }
+  .github_link {
+    font-size: 14px;
+  }
+}
+
 .project_deck {
   position: relative;
   display: grid;
