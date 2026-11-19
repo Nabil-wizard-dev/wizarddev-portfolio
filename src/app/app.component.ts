@@ -121,6 +121,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   });
 
   private observer?: IntersectionObserver;
+  private tallObserver?: ResizeObserver;
   private mediaQuery?: MediaQueryList;
   private readonly onMediaChange = (e: MediaQueryListEvent) => this.isSmallScreen.set(e.matches);
 
@@ -316,6 +317,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     this.mediaQuery.addEventListener('change', this.onMediaChange);
 
     this.setupScrollEffects();
+    this.setupTallSections();
   }
 
   ngOnDestroy(): void {
@@ -324,6 +326,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
       .querySelector('.project_deck')
       ?.removeEventListener('click', this.onDeckClickCapture as EventListener, true);
     this.observer?.disconnect();
+    this.tallObserver?.disconnect();
     this.mediaQuery?.removeEventListener('change', this.onMediaChange);
   }
 
@@ -393,5 +396,50 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     );
 
     sections.forEach((section) => this.observer!.observe(section));
+  }
+
+  /**
+   * Marque « is-tall » les blocs plus hauts que la zone visible :
+   * le CSS leur ajoute alors un point d'arrêt à leur bas (voir styles.css).
+   * Recalculé à chaque changement de taille (fenêtre, contenu, thème, langue).
+   */
+  private setupTallSections(): void {
+    if (typeof ResizeObserver === 'undefined') {
+      return;
+    }
+    const root = this.host.nativeElement as HTMLElement;
+    const blocks = Array.from(
+      root.querySelectorAll<HTMLElement>('.cv__header, .cv__content section')
+    );
+    const scrollers = Array.from(
+      root.querySelectorAll<HTMLElement>('.deebo_fn__cv, .deebo_fn__cv .cv__content')
+    );
+    if (!blocks.length || !scrollers.length) {
+      return;
+    }
+
+    const update = () => {
+      const isSmallScreen = window.matchMedia('(max-width: 1040px)').matches;
+      const scroller = root.querySelector<HTMLElement>(
+        isSmallScreen ? '.deebo_fn__cv' : '.deebo_fn__cv .cv__content'
+      );
+      if (!scroller) {
+        return;
+      }
+      const style = getComputedStyle(scroller);
+      const snapport =
+        scroller.clientHeight -
+        (parseFloat(style.scrollPaddingTop) || 0) -
+        (parseFloat(style.scrollPaddingBottom) || 0);
+
+      for (const block of blocks) {
+        // sur grand écran, la carte de profil ne défile pas
+        const inScroller = isSmallScreen || block.tagName === 'SECTION';
+        block.classList.toggle('is-tall', inScroller && block.offsetHeight > snapport + 2);
+      }
+    };
+
+    this.tallObserver = new ResizeObserver(update);
+    [...blocks, ...scrollers].forEach((el) => this.tallObserver!.observe(el));
   }
 }

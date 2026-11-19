@@ -86,9 +86,42 @@
   }
 }
 
+/* Sections plus hautes que l'écran (classe posée par AppComponent).
+   Le seul point d'accroche « haut de section » ne suffit pas : en
+   arrivant vers le bas, le navigateur sautait à la section suivante.
+   Un repère au bas de la section ajoute un second arrêt :
+   1er scroll → on parcourt la section jusqu'à son bas exact,
+   scroll suivant → section suivante. En remontant, on retombe d'abord
+   sur le bas de la section précédente, puis on la parcourt.
+   Pour la dernière section, ce repère coïncide avec la fin du défilement. */
+.deebo_fn__cv .cv__content section.is-tall {
+  position: relative;
+}
+.deebo_fn__cv .cv__content section.is-tall::after,
+.deebo_fn__cv .cv__header.is-tall::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  pointer-events: none;
+  scroll-snap-align: end;
+  scroll-snap-stop: always;
+}
+
+@media (max-width: 1040px) {
+  /* même marge en bas qu'en haut, pour que le repère de fin
+     laisse le bas de la section au même écart du bord */
+  .deebo_fn__cv {
+    scroll-padding-bottom: 20px;
+  }
+}
+
 @media (max-width: 600px) {
   .deebo_fn__cv {
     scroll-padding-top: 10px;
+    scroll-padding-bottom: 10px;
   }
 
   .deebo_fn__cv .cv__header,
