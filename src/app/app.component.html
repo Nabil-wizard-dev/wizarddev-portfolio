@@ -450,51 +450,51 @@
           <div class="section_title">
             <h3>{{ t().contact.title }}</h3>
           </div>
-          <form
-            class="contact_form"
-            action=""
-            method="post"
-            autocomplete="off"
-            data-email="Nabil.wizarddev@gmail.com"
-          >
-            <!--
-							Don't remove below code in avoid to work contact form properly.
-							You can chance dat-success value with your one. It will be used when user will try to contact via contact form and will get success message.
-						-->
+          <!-- Envoi géré par init7dd3.js (EmailJS) sur l'événement « submit ».
+               novalidate : la validation (champs vides, format de l'email)
+               est faite par le script, avec des messages traduits. -->
+          <form class="contact_form" novalidate (submit)="$event.preventDefault()">
+            <!-- Zone de message unique (succès / erreurs), annoncée aux lecteurs d'écran.
+                 Les textes sont lus au moment de l'envoi, dans la langue en cours. -->
             <div
-              class="success"
+              class="success form_status"
+              role="status"
+              aria-live="polite"
               [attr.data-success]="t().contact.success"
               [attr.data-error]="t().contact.error"
+              [attr.data-empty]="t().contact.empty"
+              [attr.data-invalid]="t().contact.invalidEmail"
+              [attr.data-toofast]="t().contact.tooFast"
             ></div>
-            <div class="empty_notice">
-              <span>{{ t().contact.empty }}</span>
-            </div>
-            <!-- -->
 
             <div class="items_wrap">
               <div class="items">
                 <div class="item half">
                   <div class="input_wrapper">
-                    <input id="name" type="text" [placeholder]="t().contact.name" />
+                    <label class="visually_hidden" for="name">{{ t().contact.name }}</label>
+                    <input id="name" name="name" type="text" autocomplete="name" required [placeholder]="t().contact.name" />
                   </div>
                 </div>
                 <div class="item half">
                   <div class="input_wrapper">
-                    <input id="email" type="email" [placeholder]="t().contact.email" />
+                    <label class="visually_hidden" for="email">{{ t().contact.email }}</label>
+                    <input id="email" name="email" type="email" autocomplete="email" required [placeholder]="t().contact.email" />
                   </div>
                 </div>
                 <div class="item">
                   <div class="input_wrapper">
-                    <input id="phone" type="text" [placeholder]="t().contact.phone" />
+                    <label class="visually_hidden" for="phone">{{ t().contact.phone }}</label>
+                    <input id="phone" name="phone" type="tel" autocomplete="tel" [placeholder]="t().contact.phone" />
                   </div>
                 </div>
                 <div class="item">
                   <div class="input_wrapper">
-                    <textarea id="message" [placeholder]="t().contact.message"></textarea>
+                    <label class="visually_hidden" for="message">{{ t().contact.message }}</label>
+                    <textarea id="message" name="message" required [placeholder]="t().contact.message"></textarea>
                   </div>
                 </div>
                 <div class="item">
-                  <a id="send_message" href="#">{{ t().contact.send }}</a>
+                  <button id="send_message" class="send_btn" type="submit">{{ t().contact.send }}</button>
                 </div>
               </div>
             </div>

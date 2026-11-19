@@ -12,14 +12,38 @@
 	var EMAILJS_CONFIG = {
 		publicKey: 	'E9sKoh_ocwzUX6WKb',
 		serviceId: 	'service_ity4ldk',
-		templateId: 'i5beb32'
+		// Le destinataire est fixé dans le template (champ « To Email »), pas ici.
+		templateId: 'template_jqgrotv'
+	};
+
+	// Stockage pour l'anti-spam « limitRate » d'EmailJS. Passé explicitement :
+	// sans lui, emailjs.init() efface le stockage par défaut et la limite est ignorée.
+	// try/catch : localStorage peut être bloqué (navigation privée, cookies refusés).
+	var emailjsStorage = {
+		get: function(key){
+			try { return Promise.resolve(window.localStorage.getItem(key)); }
+			catch(e){ return Promise.resolve(null); }
+		},
+		set: function(key, value){
+			try { window.localStorage.setItem(key, value); } catch(e){}
+			return Promise.resolve();
+		},
+		remove: function(key){
+			try { window.localStorage.removeItem(key); } catch(e){}
+			return Promise.resolve();
+		}
 	};
 
 	var FrenifyDeebo = {
 
 		init: function(){
-			if(typeof emailjs !== 'undefined' && EMAILJS_CONFIG.publicKey !== 'YOUR_PUBLIC_KEY'){
-				emailjs.init({ publicKey: EMAILJS_CONFIG.publicKey });
+			if(typeof emailjs !== 'undefined'){
+				emailjs.init({
+					publicKey: 			EMAILJS_CONFIG.publicKey,
+					blockHeadless: 		true, // refuse les navigateurs automatisés (robots)
+					storageProvider: 	emailjsStorage,
+					limitRate: 			{ id: 'contact_form', throttle: 10000 } // 1 envoi / 10 s
+				});
 			}
 			FrenifyDeebo.BgImg();
 			FrenifyDeebo.imgToSVG();
@@ -46,50 +70,80 @@
 		},
 		
 		contactForm: function(){
-			$('#send_message').off('click').on('click', function(){
-				var form		= $('.section_contact .contact_form');
-				var name 		= $("#name").val();
-				var email 		= $("#email").val();
-				var message 	= $("#message").val();
-				var phone 		= $("#phone").val();
-				var spanSuccess	= form.find(".success");
-				// attr() et non data() : jQuery mettrait en cache le texte de la 1re langue
-				var success     = spanSuccess.attr('data-success');
-				var errorText   = spanSuccess.attr('data-error');
-				var emailto     = form.data('email');
+			var form 	= $('.section_contact .contact_form');
+			var status 	= form.find('.form_status');
+			var button 	= $('#send_message');
+			var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-				spanSuccess.empty();
+			// attr() et non data() : jQuery mettrait en cache le texte de la 1re langue
+			function text(key){ return status.attr('data-' + key); }
+
+			// Un seul emplacement de message, annoncé aux lecteurs d'écran (aria-live).
+			// .text() et non du HTML construit à la main.
+			// Les erreurs restent affichées ; le succès disparaît après 6 s.
+			function show(message, ok){
+				status.stop(true, true).empty().append(
+					$('<span>').addClass(ok ? 'contact_success' : 'contact_error').text(message)
+				).slideDown(300);
+				if(ok){ status.delay(6000).slideUp(500); }
+			}
+
+			// Corriger un champ efface le message d'erreur
+			form.off('input.contact').on('input.contact', 'input, textarea', function(){
+				if(status.find('.contact_error').length){ status.stop(true, true).slideUp(200); }
+			});
+
+			// « submit » : bouton, touche Entrée dans un champ
+			form.off('submit').on('submit', function(e){
+				e.preventDefault();
+				if(button.prop('disabled')){ return false; }
+
+				var name 	= $.trim($('#name').val());
+				var email 	= $.trim($('#email').val());
+				var phone 	= $.trim($('#phone').val());
+				var message = $.trim($('#message').val());
+
 				if(name === '' || email === '' || message === ''){
-					$('.empty_notice').slideDown(500).delay(2000).slideUp(500);
+					show(text('empty'), false);
+					return false;
 				}
-				else if(typeof emailjs === 'undefined'){
-					spanSuccess.append("<span class='contact_error'>" + errorText + "</span>");
-					spanSuccess.slideDown(500).delay(4000).slideUp(500);
+				if(!EMAIL_RE.test(email)){
+					show(text('invalid'), false);
+					$('#email').trigger('focus');
+					return false;
 				}
-				else{
-					var button = $(this);
-					if(button.data('sending')){ return false; }
-					button.data('sending', true).css({'pointer-events': 'none', 'opacity': 0.6});
-					emailjs.send(EMAILJS_CONFIG.serviceId, EMAILJS_CONFIG.templateId, {
-						title: 			name,
-						name: 			name,
-						email: 			email,
-						phone: 			phone,
-						form_name: 		name,
-						form_message: 	message,
-						time: 			new Date().toLocaleString(),
-						to_email: 		emailto
-					}, { publicKey: EMAILJS_CONFIG.publicKey }).then(function(){
-						spanSuccess.append("<span class='contact_success'>" + success + "</span>");
-						spanSuccess.slideDown(500).delay(4000).slideUp(500);
-						form[0].reset();
-					}, function(){
-						spanSuccess.append("<span class='contact_error'>" + errorText + "</span>");
-						spanSuccess.slideDown(500).delay(4000).slideUp(500);
-					}).finally(function(){
-						button.data('sending', false).css({'pointer-events': '', 'opacity': ''});
-					});
+				if(typeof emailjs === 'undefined'){
+					// script EmailJS bloqué (bloqueur de pub, réseau)
+					console.error('[Contact] SDK EmailJS non chargé : envoi impossible.');
+					show(text('error'), false);
+					return false;
 				}
+
+				button.prop('disabled', true).attr('aria-busy', 'true');
+				// Variables utilisées par le template EmailJS :
+				// objet « Contact Us: {{title}} », expéditeur {{name}}, réponse à {{email}},
+				// corps {{form_name}} / {{phone}} / {{form_message}}.
+				// Le message part sous les deux noms : le template peut utiliser
+				// {{form_message}} ou {{message}} sans que le contenu disparaisse.
+				emailjs.send(EMAILJS_CONFIG.serviceId, EMAILJS_CONFIG.templateId, {
+					title: 			name,
+					name: 			name,
+					form_name: 		name,
+					email: 			email,
+					phone: 			phone,
+					message: 		message,
+					form_message: 	message
+				}).then(function(){
+					show(text('success'), true);
+					form[0].reset();
+				}, function(err){
+					// Le détail de l'erreur EmailJS : status + texte du serveur
+					// (ex. 400 « The template ID is invalid », 412 permission Gmail).
+					console.error('[Contact] Échec EmailJS :', err && err.status, err && err.text ? err.text : err);
+					show(text(err && err.status === 429 ? 'toofast' : 'error'), false);
+				}).finally(function(){
+					button.prop('disabled', false).removeAttr('aria-busy');
+				});
 				return false;
 			});
 		},

@@ -468,3 +468,53 @@
     transition: none;
   }
 }
+
+/* ------------------------------------------------------------------
+   Formulaire de contact : vrai bouton d'envoi (Entrée, Espace, état
+   « envoi en cours »), même apparence que le lien du template.
+------------------------------------------------------------------- */
+.section_contact .send_btn {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 20px;
+  border: 2px solid #393939;
+  border-radius: 50px;
+  background: transparent;
+  color: #eee;
+  font-family: "Jost", sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 26px;
+  text-align: center;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  cursor: pointer;
+  transition:
+    color 0.3s var(--fx-ease),
+    border-color 0.3s var(--fx-ease),
+    opacity 0.3s var(--fx-ease);
+}
+:host-context(.light) .section_contact .send_btn {
+  color: #333;
+}
+.section_contact .send_btn:hover,
+:host-context(.light) .section_contact .send_btn:hover {
+  border-color: var(--mc);
+  color: var(--mc);
+}
+.section_contact .send_btn:focus-visible {
+  outline: 2px solid var(--mc);
+  outline-offset: 3px;
+}
+.section_contact .send_btn:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+/* le message d'erreur reste rouge même dans la zone « succès » */
+.section_contact .form_status .contact_error {
+  color: #dd3936;
+}

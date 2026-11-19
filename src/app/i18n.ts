@@ -131,12 +131,15 @@ const fr = {
   contact: {
     title: 'Me contacter',
     success: 'Votre message a bien été reçu, je vous recontacterai très bientôt.',
-    error: 'Une erreur est survenue, veuillez réessayer plus tard.',
-    empty: 'Veuillez remplir les champs obligatoires !',
+    error:
+      "Le message n'a pas pu être envoyé. Réessayez plus tard ou écrivez-moi directement à nabil.wizarddev@gmail.com.",
+    empty: 'Veuillez remplir les champs obligatoires (*).',
+    invalidEmail: 'Cette adresse e-mail ne semble pas valide.',
+    tooFast: 'Message déjà envoyé il y a quelques secondes, patientez un instant avant de réessayer.',
     name: 'Nom *',
     email: 'Email *',
     phone: 'Téléphone',
-    message: 'Message',
+    message: 'Message *',
     send: 'Envoyer le message',
   },
 };
@@ -235,12 +238,15 @@ const en: Translations = {
   contact: {
     title: 'Contact me',
     success: "Your message has been received, I'll get back to you very soon.",
-    error: 'Something went wrong, please try again later.',
-    empty: 'Please fill in the required fields!',
+    error:
+      "Your message couldn't be sent. Please try again later or email me directly at nabil.wizarddev@gmail.com.",
+    empty: 'Please fill in the required fields (*).',
+    invalidEmail: "This email address doesn't look valid.",
+    tooFast: 'A message was just sent, please wait a moment before trying again.',
     name: 'Name *',
     email: 'Email *',
     phone: 'Phone',
-    message: 'Message',
+    message: 'Message *',
     send: 'Send message',
   },
 };
