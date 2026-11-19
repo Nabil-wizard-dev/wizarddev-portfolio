@@ -71,6 +71,54 @@
   border-radius: 4px;
 }
 
+/* Photo de profil : anneau d'accent détaché, qui tourne lentement */
+.avatar__frame {
+  position: relative;
+  display: inline-block;
+  padding: 7px;
+  border-radius: 50%;
+  isolation: isolate;
+}
+.avatar__frame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  padding: 2px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 210deg,
+    var(--mc),
+    transparent 35%,
+    transparent 55%,
+    var(--mc)
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  animation: avatar-orbit 14s linear infinite;
+}
+.deebo_fn__cv .cv__header .avatar__frame img {
+  display: block;
+  width: 600px;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+  object-position: 70% 20%;
+  filter: contrast(1.12) brightness(1.05);
+  box-shadow: 0 14px 28px -12px color-mix(in srgb, var(--mc) 60%, transparent);
+}
+@keyframes avatar-orbit {
+  to {
+    transform: rotate(1turn);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .avatar__frame::before {
+    animation: none;
+  }
+}
+
 /* Grand écran peu haut (portable 13") : la carte doit tenir sans défiler */
 @media (min-width: 1041px) and (max-height: 760px) {
   .deebo_fn__cv .cv__header .avatar img {
